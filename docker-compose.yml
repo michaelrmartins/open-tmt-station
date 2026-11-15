@@ -1,0 +1,22 @@
+name: open-tmt-station
+
+services:
+  api:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: 3001
+    # Uncomment if InfluxDB runs on the Docker host itself (not in a container on this network):
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+    expose:
+      - "3001"
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-8080}:80"
