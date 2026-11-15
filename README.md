@@ -100,10 +100,35 @@ All endpoints are `GET` and return JSON. Full reference with response examples: 
 | `/api/history?range=&metrics=`   | Chart series (block-averaged to `maxPoints`) and min/max/avg per metric                       |
 | `/api/metrics/:metric?range=`    | One metric: series and derived values over the range                                        |
 | `/api/energy?range=&mode=`       | Energy over the range: time on battery and on source, discharge and charge rates, autonomy   |
+| `/api/outside`                   | External weather from OpenWeather (served from memory, refreshed hourly)                     |
 
 `range`: `1h`, `3h`, `6h`, `12h`, `24h` (default), `7d`, `30d`. `mode`: `solar` or `psu` (default from `POWER_MODE`).
 
 Responses are cached in memory (15 s for the snapshot, 60 s for ranges). Concurrent identical requests share one InfluxDB query. A rate limit of `RATE_LIMIT_PER_MINUTE` requests per IP applies.
+
+## External weather (OpenWeather)
+
+The banner at the top of the page shows outside conditions from OpenWeather: temperature, feels-like, condition, humidity, pressure, wind with direction, sunrise and sunset, and the next 24 h forecast. It uses the free *Current weather* and *5 day / 3 hour forecast* APIs.
+
+Set these in `.env` (leave the key empty to hide the outside weather):
+
+```
+OPENWEATHER_API_KEY=your_key
+OPENWEATHER_LAT=-22.9056
+OPENWEATHER_LON=-47.0608
+# or, without coordinates: OPENWEATHER_CITY=Campinas,BR
+OPENWEATHER_LOCATION_NAME=Campinas
+OPENWEATHER_LANG=en
+OPENWEATHER_REFRESH_MINUTES=60
+```
+
+How the free-plan rate limit is respected:
+
+- Only a background scheduler in the API calls OpenWeather: 2 requests per refresh, every 60 min by default (about 48 requests per day; the minimum interval is 10 min).
+- Visitors never trigger a request. `/api/outside` only returns the copy held in memory.
+- The last response is saved to the `api-data` Docker volume (`/app/data/openweather.json`). After a restart the API reuses it and waits for the remaining time instead of calling again.
+- When a refresh fails, the previous data stays on the page. Network and server errors retry after 15 min. An invalid key or location (401 / 404) waits for the next regular interval.
+- The API key is never logged or sent to the browser.
 
 ## Calculations
 

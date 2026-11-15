@@ -56,7 +56,7 @@ const downsample = (pts, max) => {
 
 const toPairs = (pts, digits = 3) => pts.map((p) => [p.t, Math.round(p.v * 10 ** digits) / 10 ** digits]);
 
-export function createApiRouter({ config, repo, cache }) {
+export function createApiRouter({ config, repo, cache, weather }) {
   const r = Router();
   const bat = config.battery;
   const wrap = (fn) => async (req, res, next) => {
@@ -86,6 +86,12 @@ export function createApiRouter({ config, repo, cache }) {
       influx = 'error';
     }
     res.status(influx === 'ok' ? 200 : 503).json({ status: influx === 'ok' ? 'ok' : 'degraded', influx, mock: repo.mock, time: Date.now() });
+  });
+
+  // External weather (OpenWeather). Served from memory: refreshed by a background
+  // scheduler every OPENWEATHER_REFRESH_MINUTES, never fetched per request.
+  r.get('/outside', (_req, res) => {
+    res.json(weather ? weather.snapshot() : { enabled: false });
   });
 
   // Station info, metrics and thresholds used by the calculations.

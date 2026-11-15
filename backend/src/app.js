@@ -5,8 +5,12 @@ import { rateLimit } from 'express-rate-limit';
 import { createApiRouter } from './routes/api.js';
 import { createRepository } from './data/repository.js';
 import { TtlCache } from './lib/cache.js';
+import { OpenWeatherService } from './services/openweather.js';
 
-export function createApp(config, { repo = createRepository(config), cache = new TtlCache() } = {}) {
+export function createApp(
+  config,
+  { repo = createRepository(config), cache = new TtlCache(), weather = new OpenWeatherService(config.openWeather, { mock: config.mock }) } = {}
+) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', config.trustProxy);
@@ -22,7 +26,8 @@ export function createApp(config, { repo = createRepository(config), cache = new
     next();
   });
 
-  app.use('/api', createApiRouter({ config, repo, cache }));
+  app.use('/api', createApiRouter({ config, repo, cache, weather }));
+  app.locals.weather = weather;
 
   app.use('/api', (_req, res) => res.status(404).json({ error: 'endpoint not found' }));
   // eslint-disable-next-line no-unused-vars

@@ -5,6 +5,17 @@ import { fmtDateTime, fmtNum } from '../lib/format.js';
 
 const toRows = (points = []) => points.map(([t, v]) => ({ t, v }));
 
+/** Glowing dot on the last point of a series. */
+export function EndDot({ cx, cy, index, last, color, r = 3.5 }) {
+  if (index !== last || cx == null || cy == null) return null;
+  return (
+    <g>
+      <circle className="halo" cx={cx} cy={cy} r={r + 3} fill={color} opacity={0.4} />
+      <circle cx={cx} cy={cy} r={r} fill="#fff" stroke={color} strokeWidth={2} />
+    </g>
+  );
+}
+
 /** Minimal area sparkline. */
 export function Sparkline({ points, tone = 'slate', height = 56 }) {
   const id = useId().replace(/:/g, '');
@@ -12,9 +23,9 @@ export function Sparkline({ points, tone = 'slate', height = 56 }) {
   const data = toRows(points);
   if (data.length < 2) return <div style={{ height }} />;
   return (
-    <div style={{ height }} aria-hidden="true">
+    <div className="glow-line" style={{ height, '--glow': t.line }} aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+        <AreaChart data={data} margin={{ top: 6, right: 6, bottom: 2, left: 0 }}>
           <defs>
             <linearGradient id={`sp-${id}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={t.line} stopOpacity={0.45} />
@@ -22,7 +33,7 @@ export function Sparkline({ points, tone = 'slate', height = 56 }) {
             </linearGradient>
           </defs>
           <YAxis hide domain={['dataMin', 'dataMax']} />
-          <Area type="monotone" dataKey="v" stroke={t.line} strokeWidth={1.75} fill={`url(#sp-${id})`} isAnimationActive={false} dot={false} />
+          <Area type="monotone" dataKey="v" stroke={t.line} strokeWidth={2} fill={`url(#sp-${id})`} isAnimationActive={false} dot={<EndDot last={data.length - 1} color={t.line} />} />
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -55,16 +66,16 @@ export function HistoryChart({ points, tone = 'sky', unit, digits = 1, rangeMs, 
     return <div className="flex items-center justify-center text-[14px] text-ink-3" style={{ height }}>No data in this range</div>;
   }
   return (
-    <div style={{ height }}>
+    <div className="glow-line" style={{ height, '--glow': t.line }}>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 6, bottom: 0, left: 0 }}>
+        <AreaChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id={`hc-${id}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={t.line} stopOpacity={0.4} />
               <stop offset="100%" stopColor={t.line} stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.06)" />
+          <CartesianGrid vertical={false} stroke="rgba(20,50,90,0.06)" />
           <XAxis
             dataKey="t"
             type="number"
@@ -87,8 +98,8 @@ export function HistoryChart({ points, tone = 'sky', unit, digits = 1, rangeMs, 
           />
           {band && <ReferenceArea y1={band[0]} y2={band[1]} fill={t.line} fillOpacity={0.08} stroke="none" ifOverflow="hidden" />}
           {reference && <ReferenceLine y={reference.value} stroke="rgba(0,0,0,0.18)" strokeDasharray="4 4" ifOverflow="hidden" label={{ value: reference.label, position: 'insideTopRight', fill: '#a1a1a6', fontSize: 11 }} />}
-          <Tooltip content={<ChartTooltip unit={unit} digits={digits} />} cursor={{ stroke: 'rgba(0,0,0,0.12)', strokeWidth: 1 }} />
-          <Area type="monotone" dataKey="v" stroke={t.fg} strokeOpacity={0.75} strokeWidth={2} fill={`url(#hc-${id})`} dot={false} activeDot={{ r: 4, fill: '#fff', stroke: t.fg, strokeWidth: 2 }} animationDuration={600} />
+          <Tooltip content={<ChartTooltip unit={unit} digits={digits} />} cursor={{ stroke: 'rgba(20,50,90,0.15)', strokeWidth: 1 }} />
+          <Area type="monotone" dataKey="v" stroke={t.line} strokeWidth={2.25} fill={`url(#hc-${id})`} dot={<EndDot last={data.length - 1} color={t.line} r={4} />} activeDot={{ r: 4.5, fill: '#fff', stroke: t.fg, strokeWidth: 2 }} animationDuration={600} />
         </AreaChart>
       </ResponsiveContainer>
     </div>

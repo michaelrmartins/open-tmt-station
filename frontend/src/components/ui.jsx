@@ -1,7 +1,7 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
 import { TONES } from '../lib/labels.js';
 
-export const ICON_STROKE = 1.75;
+export const ICON_STROKE = 1.6;
 
 export function Card({ className = '', children, ...rest }) {
   return (
@@ -17,7 +17,7 @@ export function IconChip({ icon: Icon, tone = 'slate', size = 'md' }) {
   const box = size === 'lg' ? 'h-11 w-11 rounded-[14px]' : size === 'sm' ? 'h-8 w-8 rounded-[10px]' : 'h-9 w-9 rounded-xl';
   const px = size === 'lg' ? 22 : size === 'sm' ? 16 : 18;
   return (
-    <span className={`inline-flex shrink-0 items-center justify-center ${box}`} style={{ background: t.bg, color: t.fg }}>
+    <span className={`chip inline-flex shrink-0 items-center justify-center ${box}`} style={{ '--chip-bg': t.bg, color: t.fg }}>
       <Icon size={px} strokeWidth={ICON_STROKE} aria-hidden="true" />
     </span>
   );
@@ -68,7 +68,7 @@ export function Pill({ tone = 'slate', icon: Icon, children }) {
 export function Segmented({ options, value, onChange, label, size = 'md' }) {
   const pad = size === 'sm' ? 'px-2.5 py-1 text-[12px]' : 'px-3 py-1.5 text-[13px]';
   return (
-    <div role="tablist" aria-label={label} className="inline-flex max-w-full overflow-x-auto rounded-full bg-black/[0.05] p-1 [scrollbar-width:none]">
+    <div role="tablist" aria-label={label} className="inline-flex max-w-full overflow-x-auto rounded-full bg-white/55 p-1 ring-1 ring-[rgba(20,50,90,0.07)] backdrop-blur-md [scrollbar-width:none]">
       {options.map((o) => {
         const active = o.value === value;
         return (
@@ -78,7 +78,7 @@ export function Segmented({ options, value, onChange, label, size = 'md' }) {
             aria-selected={active}
             onClick={() => onChange(o.value)}
             className={`${pad} whitespace-nowrap rounded-full font-medium transition-all duration-200 ${
-              active ? 'bg-white text-ink shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_1px_rgba(0,0,0,0.04)]' : 'text-ink-2 hover:text-ink'
+              active ? 'bg-white text-ink shadow-[0_1px_3px_rgba(20,50,90,0.12),0_1px_1px_rgba(20,50,90,0.05)]' : 'text-ink-2 hover:text-ink'
             }`}
           >
             {o.label}
@@ -104,7 +104,7 @@ export function Stat({ label, value, unit, hint, className = '' }) {
 }
 
 export function Divider() {
-  return <div className="my-4 h-px bg-black/[0.06]" />;
+  return <div className="my-4 h-px bg-gradient-to-r from-transparent via-[rgba(20,50,90,0.1)] to-transparent" />;
 }
 
 export function Skeleton({ className = '' }) {

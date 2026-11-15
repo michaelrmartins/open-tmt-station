@@ -3,52 +3,53 @@
 @theme {
   --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', Inter, 'Helvetica Neue', Arial, sans-serif;
 
-  /* Neutral surface (Apple light) */
-  --color-canvas: #f5f5f7;
-  --color-ink: #1d1d1f;
-  --color-ink-2: #6e6e73;
-  --color-ink-3: #a1a1a6;
+  /* Neutral surface */
+  --color-canvas: #f3f7fb;
+  --color-ink: #16202c;
+  --color-ink-2: #5d6b7a;
+  --color-ink-3: #97a3b0;
 
-  /* Soft pastel accents: fg = readable text/icon, bg = tint, line = chart stroke */
-  --color-peach: #c47a5e;
-  --color-peach-bg: #fbece5;
-  --color-peach-line: #eaa98e;
+  /* Palette taken from the station photo, kept soft:
+     fg = readable text/icon, bg = tint, line = chart stroke */
+  --color-peach: #c4703f;      /* low sun */
+  --color-peach-bg: #fdeee2;
+  --color-peach-line: #f0a872;
 
-  --color-sky: #5682b0;
-  --color-sky-bg: #e6eff9;
-  --color-sky-line: #92b8df;
+  --color-sky: #2f84bf;        /* clear sky */
+  --color-sky-bg: #e3f1fb;
+  --color-sky-line: #6ec3ea;
 
-  --color-lilac: #7d6bb0;
-  --color-lilac-bg: #eeeaf8;
-  --color-lilac-line: #b6a9de;
+  --color-lilac: #6f74b8;      /* evening sky */
+  --color-lilac-bg: #ebedfa;
+  --color-lilac-line: #a6aee6;
 
-  --color-butter: #a5843b;
-  --color-butter-bg: #faf3de;
-  --color-butter-line: #e5c87c;
+  --color-butter: #b88a1e;     /* sunlight */
+  --color-butter-bg: #fcf3d9;
+  --color-butter-line: #f2c95a;
 
-  --color-sage: #4f8d6d;
-  --color-sage-bg: #e5f2eb;
-  --color-sage-line: #92caa9;
+  --color-sage: #4f8f42;       /* grass */
+  --color-sage-bg: #e6f3e1;
+  --color-sage-line: #8fcf78;
 
-  --color-apricot: #ad7a35;
-  --color-apricot-bg: #fcefdc;
-  --color-apricot-line: #ebbf7d;
+  --color-apricot: #b8762a;    /* solar panel / sun */
+  --color-apricot-bg: #fcefdb;
+  --color-apricot-line: #f0b865;
 
-  --color-teal: #43857f;
-  --color-teal-bg: #e1f1ef;
-  --color-teal-line: #8ec9c3;
+  --color-teal: #2a8a8a;
+  --color-teal-bg: #dff3f2;
+  --color-teal-line: #74cdc8;
 
-  --color-rose: #a3647f;
-  --color-rose-bg: #f6e8ef;
-  --color-rose-line: #d9a7bf;
+  --color-rose: #a35f7c;
+  --color-rose-bg: #f7e8ef;
+  --color-rose-line: #dca5bf;
 
-  --color-coral: #b8655f;
-  --color-coral-bg: #f9e7e5;
-  --color-coral-line: #e4a29c;
+  --color-coral: #bb5f55;
+  --color-coral-bg: #fbe8e5;
+  --color-coral-line: #eea197;
 
-  --color-slate: #6b7480;
-  --color-slate-bg: #eef0f3;
-  --color-slate-line: #b7bec8;
+  --color-slate: #64748a;
+  --color-slate-bg: #edf1f5;
+  --color-slate-line: #b4c0cd;
 }
 
 @layer base {
@@ -63,60 +64,79 @@
   }
 }
 
-/* Ambient pastel backdrop behind the translucent cards */
-.ambient {
+/* Page backdrop: the station photo, heavily blurred and washed out */
+.backdrop {
   position: fixed;
   inset: 0;
   z-index: -1;
-  overflow: hidden;
-  background: #f5f5f7;
-}
-.ambient::before,
-.ambient::after,
-.ambient span {
-  content: '';
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(90px);
-  opacity: 0.55;
-}
-.ambient::before {
-  width: 46vw;
-  height: 46vw;
-  left: -10vw;
-  top: -12vw;
-  background: #dbe8f7;
-}
-.ambient::after {
-  width: 40vw;
-  height: 40vw;
-  right: -8vw;
-  top: 8vw;
-  background: #ece4f7;
-}
-.ambient span {
-  width: 42vw;
-  height: 42vw;
-  left: 28vw;
-  bottom: -20vw;
-  background: #f8eadf;
+  background-color: #eef4f9;
+  background-image:
+    linear-gradient(180deg, rgba(244, 248, 252, 0.8) 0%, rgba(243, 247, 251, 0.86) 45%, rgba(243, 248, 243, 0.9) 100%),
+    url('/images/backdrop.jpg');
+  background-size: cover;
+  background-position: center 30%;
 }
 
+/* Frosted card on the light page */
 .glass {
-  background: rgba(255, 255, 255, 0.62);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-  backdrop-filter: saturate(180%) blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.7));
+  -webkit-backdrop-filter: saturate(160%) blur(28px);
+  backdrop-filter: saturate(160%) blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   box-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.02),
-    0 8px 28px rgba(31, 41, 55, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    0 1px 1px rgba(20, 50, 90, 0.03),
+    0 14px 34px -14px rgba(30, 80, 140, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Frosted panel over the banner photo (white text) */
+.glass-photo {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
+  -webkit-backdrop-filter: saturate(105%) blur(18px);
+  backdrop-filter: saturate(105%) blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow:
+    0 10px 30px -12px rgba(8, 35, 70, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.photo-text {
+  text-shadow: 0 1px 2px rgba(5, 25, 50, 0.28);
 }
 
 .glass-bar {
-  background: rgba(245, 245, 247, 0.72);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
+  background: rgba(246, 249, 252, 0.78);
+  -webkit-backdrop-filter: saturate(170%) blur(20px);
+  backdrop-filter: saturate(170%) blur(20px);
+}
+
+/* Icon chip: white glass with a soft tint */
+.chip {
+  background: linear-gradient(160deg, #fff 0%, var(--chip-bg) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 1px 2px rgba(20, 50, 90, 0.06),
+    0 0 0 1px rgba(20, 50, 90, 0.05);
+}
+
+/* Soft glow on chart lines, like the reference photo */
+.glow-line path.recharts-area-curve,
+.glow-line .recharts-area-curve {
+  filter: drop-shadow(0 0 4px var(--glow, rgba(110, 195, 234, 0.6)));
+}
+
+/* Thin rules around tracked captions */
+.caption-rule {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.caption-rule::before,
+.caption-rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.35;
 }
 
 /* Moving dashes on active power-flow connectors */
@@ -133,7 +153,7 @@
 .flow-h,
 .flow-v {
   border-radius: 9999px;
-  background-color: rgba(0, 0, 0, 0.06);
+  background-color: rgba(20, 50, 90, 0.07);
 }
 .flow-h.is-active {
   background-image: linear-gradient(90deg, currentColor 50%, transparent 50%);
@@ -165,10 +185,28 @@
   animation: pulse-soft 2.4s ease-in-out infinite;
 }
 
+@keyframes halo {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.15;
+    transform: scale(1.8);
+  }
+}
+.halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: halo 2.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .flow-h.is-active,
   .flow-v.is-active,
-  .live-dot {
+  .live-dot,
+  .halo {
     animation: none;
   }
 }

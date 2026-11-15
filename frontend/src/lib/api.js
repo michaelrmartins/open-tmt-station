@@ -15,4 +15,6 @@ export const api = {
   snapshot: () => get('/snapshot'),
   history: (range) => get('/history', { range, metrics: HISTORY_METRICS.join(','), maxPoints: 400 }),
   energy: (range) => get('/energy', { range }),
+  // Served from the API's memory; the API refreshes it from OpenWeather once per hour
+  outside: () => get('/outside'),
 };

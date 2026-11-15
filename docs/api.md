@@ -300,3 +300,32 @@ Energy analysis over the range.
 - `discharge`: average battery slope while running on battery (`rateMvH`, `ratePercentH`), weighted by segment duration. `autonomyHours` is full to empty at that rate.
 - `charge`: same method while charging. `fullChargeHours` is empty to full at that rate.
 - `transitions`: number of state changes in the range.
+
+## GET /api/outside
+
+External weather from OpenWeather. This endpoint never calls OpenWeather: it returns the copy kept in memory by the background scheduler (every `OPENWEATHER_REFRESH_MINUTES`, default 60).
+
+```json
+{
+  "enabled": true,
+  "source": "OpenWeather",
+  "location": { "name": "Campinas", "country": "BR", "lat": -22.9, "lon": -47.06 },
+  "current": {
+    "time": 1700000000000, "temp": 21.6, "feelsLike": 21.8, "tempMin": 19, "tempMax": 24,
+    "humidity": 72, "pressure": 1015, "windSpeed": 8.4, "windGust": 14.4, "windDeg": 140,
+    "clouds": 40, "visibilityKm": 10, "rain1h": null, "snow1h": null,
+    "condition": { "id": 802, "main": "Clouds", "description": "scattered clouds", "icon": "03d" },
+    "sunrise": 1699950000000, "sunset": 1699997000000, "timezoneOffsetS": -10800
+  },
+  "forecast": [
+    { "time": 1700010800000, "temp": 20, "humidity": 60, "pop": 20, "windSpeed": 10.8, "condition": { "id": 802, "main": "Clouds", "description": "scattered clouds", "icon": "03d" } }
+  ],
+  "fetchedAt": 1700000100000,
+  "nextUpdateAt": 1700003700000,
+  "refreshMinutes": 60,
+  "stale": false,
+  "error": null
+}
+```
+
+Wind speeds are in km/h, `pop` is the probability of precipitation in %, `forecast` has 8 entries (3 h steps, next 24 h). Returns `{ "enabled": false }` when no key or location is configured. In `MOCK_DATA` mode without a key it returns demo data.

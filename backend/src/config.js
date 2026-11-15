@@ -39,6 +39,25 @@ export const config = {
     full: num(process.env.BAT_MAX, 4.135),
   },
 
+  // External weather (OpenWeather). Fetched by a background scheduler, never per request.
+  openWeather: {
+    apiKey: process.env.OPENWEATHER_API_KEY || '',
+    // Location: latitude/longitude (preferred) or a city query such as "Sao Paulo,BR"
+    lat: process.env.OPENWEATHER_LAT || '',
+    lon: process.env.OPENWEATHER_LON || '',
+    city: process.env.OPENWEATHER_CITY || '',
+    // Optional display name; defaults to the name OpenWeather returns
+    locationName: process.env.OPENWEATHER_LOCATION_NAME || '',
+    units: 'metric',
+    lang: process.env.OPENWEATHER_LANG || 'en',
+    // Refresh interval in minutes (default 60, minimum 10 to stay inside free-plan limits)
+    refreshMs: Math.max(10, num(process.env.OPENWEATHER_REFRESH_MINUTES, 60)) * 60e3,
+    // Where the last response is persisted, so restarts don't trigger extra calls
+    cacheFile: process.env.OPENWEATHER_CACHE_FILE || './data/openweather.json',
+    baseUrl: 'https://api.openweathermap.org/data/2.5',
+    timeoutMs: num(process.env.OPENWEATHER_TIMEOUT_MS, 10000),
+  },
+
   cache: {
     snapshotTtlMs: num(process.env.CACHE_SNAPSHOT_TTL_MS, 15000),
     historyTtlMs: num(process.env.CACHE_HISTORY_TTL_MS, 60000),
