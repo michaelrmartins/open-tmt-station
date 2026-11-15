@@ -8,6 +8,7 @@ import { WeatherGrid } from './components/WeatherCards.jsx';
 import { HistorySection } from './components/HistorySection.jsx';
 import { EnergySection } from './components/EnergySection.jsx';
 import { SystemSection } from './components/SystemSection.jsx';
+import { OutsideBanner } from './components/OutsideBanner.jsx';
 
 const RANGES = [
   { value: '1h', label: '1H', ms: 3600e3 },
@@ -51,6 +52,7 @@ export default function App() {
   const snapshot = usePolling(api.snapshot, 30e3);
   const history = usePolling(() => api.history(range), 60e3, [range]);
   const energy = usePolling(() => api.energy(range), 60e3, [range]);
+  const outside = usePolling(api.outside, 5 * 60e3);
 
   useEffect(() => {
     try {
@@ -69,12 +71,12 @@ export default function App() {
 
   return (
     <>
-      <div className="ambient"><span /></div>
+      <div className="backdrop" />
 
       <header className="glass-bar sticky top-0 z-20 border-b border-black/[0.05]">
         <div className="mx-auto flex max-w-[1240px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] text-white shadow-sm" style={{ background: 'linear-gradient(135deg, #a9c8ec, #c9b9ea)' }}>
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] text-white shadow-sm" style={{ background: 'linear-gradient(140deg, #ffd88a 0%, #7cc4ee 55%, #3f8fd0 100%)' }}>
               <CloudSun size={20} strokeWidth={ICON_STROKE} aria-hidden="true" />
             </span>
             <div className="min-w-0">
@@ -91,8 +93,10 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1240px] px-4 pb-16 pt-8 sm:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-4 px-1">
+      <main className="mx-auto max-w-[1240px] px-4 pb-16 pt-6 sm:px-6">
+        <OutsideBanner outside={outside.data} stationName={station?.name} />
+
+        <div className="mt-8 flex flex-wrap items-end justify-between gap-4 px-1">
           <div>
             <h1 className="text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[40px]">Current conditions</h1>
             <p className="mt-1 text-[15px] text-ink-2">
@@ -124,8 +128,8 @@ export default function App() {
         <SectionTitle title="System" subtitle="Device health" />
         <SystemSection snapshot={snapshot.data} />
 
-        <footer className="mt-12 text-center text-[12px] text-ink-3">
-          Data refreshes automatically every 30 seconds{meta.data?.mock ? ' · Demo data' : ''}
+        <footer className="caption-rule mt-14 text-[11px] font-medium uppercase tracking-[0.2em] text-ink-3">
+          <span className="text-center">Data refreshes automatically every 30 seconds{meta.data?.mock ? ' · Demo data' : ''}</span>
         </footer>
       </main>
     </>

@@ -9,6 +9,7 @@ const config = {
   station: { name: 'Test', location: '', powerMode: 'solar' },
   battery: { empty: 3.0, full: 4.135 },
   cache: { snapshotTtlMs: 1000, historyTtlMs: 1000 },
+  openWeather: { apiKey: '', lat: '', lon: '', city: '', units: 'metric', lang: 'en', refreshMs: 3600e3, cacheFile: '/nonexistent/ow.json' },
 };
 
 const start = () => new Promise((resolve) => {
@@ -45,6 +46,9 @@ test('endpoints (MOCK_DATA)', async () => {
     assert.ok(energy.body.charge.rateMvH > 0);
 
     assert.equal((await get('/metrics/pressure?range=6h')).status, 200);
+    const outside = await get('/outside');
+    assert.equal(outside.body.enabled, true); // demo data in MOCK_DATA mode without a key
+    assert.ok(outside.body.current.temp !== null);
     assert.equal((await get('/history?range=99y')).status, 400);
     assert.equal((await get('/history?metrics=foo')).status, 400);
     assert.equal((await get('/metrics/foo')).status, 404);

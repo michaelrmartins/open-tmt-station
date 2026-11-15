@@ -10,6 +10,8 @@ services:
     # Uncomment if InfluxDB runs on the Docker host itself (not in a container on this network):
     # extra_hosts:
     #   - "host.docker.internal:host-gateway"
+    volumes:
+      - api-data:/app/data
     expose:
       - "3001"
 
@@ -20,3 +22,6 @@ services:
       - api
     ports:
       - "${WEB_PORT:-8080}:80"
+
+volumes:
+  api-data:
