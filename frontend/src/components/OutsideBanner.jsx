@@ -42,27 +42,30 @@ const DIRS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 const compass = (deg) => (deg == null ? '' : DIRS[Math.round(deg / 45) % 8]);
 const capital = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
 
-function Metric({ icon, value, unit, label, accent }) {
+function Metric({ icon: Icon, value, unit, label, accent }) {
   return (
-    <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-      <span className="shrink-0" style={{ color: accent || '#fff' }}>{icon}</span>
+    <div className="flex min-w-0 items-center gap-3">
+      <Icon strokeWidth={STROKE} className="hidden h-8 w-8 shrink-0 2xl:block" style={{ color: accent || '#fff' }} aria-hidden="true" />
       <div className="min-w-0">
-        <div className="tabular whitespace-nowrap text-[24px] font-semibold leading-none tracking-[-0.02em] sm:text-[34px]">
+        <div className="tabular whitespace-nowrap text-[26px] font-semibold leading-none tracking-[-0.02em]">
           {value}
-          <span className="ml-1 text-[14px] font-medium opacity-90 sm:text-[18px]">{unit}</span>
+          <span className="ml-1 text-[13px] font-medium opacity-90">{unit}</span>
         </div>
-        <div className="mt-1 truncate text-[13px] font-medium opacity-85">{label}</div>
+        <div className="mt-1.5 flex items-center gap-1.5 truncate text-[12px] font-medium opacity-85">
+          <Icon strokeWidth={1.8} className="h-3.5 w-3.5 shrink-0 2xl:hidden" style={{ color: accent || '#fff' }} aria-hidden="true" />
+          {label}
+        </div>
       </div>
     </div>
   );
 }
 
 /** Forecast temperature line with a cyan glow, as in the reference photo. */
-function ForecastLine({ forecast }) {
+function ForecastLine({ forecast, compact = false }) {
   const id = useId().replace(/:/g, '');
   const pts = forecast.filter((f) => f.temp != null);
   if (pts.length < 2) return null;
-  const W = 600, H = 70, padX = 14, padY = 12;
+  const W = 600, H = compact ? 40 : 70, padX = 14, padY = compact ? 7 : 12;
   const lo = Math.min(...pts.map((p) => p.temp)), hi = Math.max(...pts.map((p) => p.temp));
   const span = hi - lo || 1;
   const xy = pts.map((p, i) => [padX + (i * (W - 2 * padX)) / (pts.length - 1), H - padY - ((p.temp - lo) / span) * (H - 2 * padY)]);
@@ -74,7 +77,7 @@ function ForecastLine({ forecast }) {
   const [lx, ly] = xy[xy.length - 1];
   return (
     <div>
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-[70px] w-full overflow-visible" aria-hidden="true">
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className={`${compact ? 'h-[40px]' : 'h-[70px]'} w-full overflow-visible`} aria-hidden="true">
         <defs>
           <linearGradient id={`fa-${id}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={DROP} stopOpacity="0.35" />
@@ -91,11 +94,11 @@ function ForecastLine({ forecast }) {
         <path d={`${d} L${lx},${H} L${xy[0][0]},${H} Z`} fill={`url(#fa-${id})`} />
         <path d={d} fill="none" stroke={DROP} strokeWidth="2.5" vectorEffect="non-scaling-stroke" filter={`url(#fg-${id})`} />
       </svg>
-      <div className="mt-1 grid text-center" style={{ gridTemplateColumns: `repeat(${pts.length}, minmax(0, 1fr))` }}>
-        {pts.map((p) => (
+      <div className={`${compact ? 'mt-0' : 'mt-1'} grid text-center`} style={{ gridTemplateColumns: `repeat(${pts.length}, minmax(0, 1fr))` }}>
+        {pts.map((p, i) => (
           <div key={p.time} className="min-w-0">
-            <div className="tabular text-[13px] font-semibold">{fmtNum(p.temp, 0)}°</div>
-            <div className="tabular text-[11px] opacity-75">{fmtTime(p.time)}</div>
+            <div className={`tabular font-semibold ${compact ? 'text-[12px]' : 'text-[13px]'}`}>{fmtNum(p.temp, 0)}°</div>
+            <div className={`tabular opacity-75 ${compact ? 'text-[10px]' : 'text-[11px]'}`}>{compact && i % 2 ? '\u00a0' : fmtTime(p.time)}</div>
           </div>
         ))}
       </div>
@@ -103,102 +106,98 @@ function ForecastLine({ forecast }) {
   );
 }
 
+/**
+ * Wide, low banner: the station photo with frosted panels side by side.
+ * Desktop: one row of panels. Phones/tablets: the row scrolls horizontally (snap).
+ */
 export function OutsideBanner({ outside, stationName }) {
   const on = outside?.enabled && outside.current;
   const c = outside?.current;
   const place = outside?.location?.name;
+  const panel = 'glass-photo shrink-0 snap-start rounded-[22px] px-5 py-4 text-white';
 
   return (
-    <section className="relative overflow-hidden rounded-[32px] shadow-[0_24px_60px_-28px_rgba(15,60,110,0.45)] ring-1 ring-white/60">
+    <section className="relative lg:overflow-hidden lg:rounded-[28px] lg:shadow-[0_20px_50px_-26px_rgba(15,60,110,0.45)] lg:ring-1 lg:ring-white/60">
       <img
         src="/images/station-banner.jpg"
         srcSet="/images/station-banner-1200.jpg 1200w, /images/station-banner.jpg 2048w"
-        sizes="(max-width: 1280px) 100vw, 1240px"
+        sizes="100vw"
         alt={`${stationName || 'Weather station'}: solar-powered ESP32 sensor box on a pole in an open field`}
-        className="absolute inset-x-0 top-0 h-[230px] w-full object-cover object-[24%_center] sm:h-[300px] lg:inset-0 lg:h-full lg:object-left"
+        className="absolute inset-0 hidden h-full w-full object-cover object-[16%_58%] lg:block"
       />
-      {/* Mobile: blurred photo behind the stacked panels */}
-      <div
-        className="absolute inset-x-0 bottom-0 top-[230px] bg-cover bg-center sm:top-[300px] lg:hidden"
-        style={{ backgroundImage: "linear-gradient(180deg, rgba(20,70,120,0.15), rgba(15,55,40,0.35)), url('/images/backdrop.jpg')" }}
-      />
-      <div className="absolute inset-x-0 top-[170px] h-[60px] bg-gradient-to-b from-transparent to-[rgba(20,70,120,0.15)] sm:top-[240px] lg:hidden" />
-      {/* Desktop: soft shade behind the panels */}
-      <div className="absolute inset-0 hidden bg-gradient-to-r from-transparent via-[rgba(10,45,90,0.05)] to-[rgba(10,45,90,0.28)] lg:block" />
+      <div className="absolute inset-0 hidden bg-gradient-to-r from-transparent via-[rgba(10,45,90,0.04)] to-[rgba(10,45,90,0.22)] lg:block" />
 
-      <div className="photo-text relative grid grid-cols-1 text-white lg:min-h-[440px] lg:grid-cols-[1fr_minmax(0,600px)]">
-        <div className="h-[230px] sm:h-[300px] lg:h-auto" />
-
-        <div className="flex flex-col justify-end gap-3 p-4 pt-5 sm:p-6 lg:justify-center lg:py-8 lg:pl-0 lg:pr-8">
-          {on ? (
-            <>
-              <div className="glass-photo grid grid-cols-1 gap-5 rounded-[24px] p-5 sm:grid-cols-[1.25fr_auto_1fr] sm:items-center">
-                <div className="flex min-w-0 items-center gap-4">
-                  <WeatherIcon condition={c.condition} size={60} />
-                  <div className="min-w-0">
-                    <div className="tabular whitespace-nowrap text-[40px] font-semibold leading-none tracking-[-0.03em] sm:text-[46px]">
-                      {fmtNum(c.temp, 1)}
-                      <span className="ml-0.5 text-[26px] font-medium">°C</span>
-                    </div>
-                    <div className="mt-1.5 truncate text-[13px] font-medium opacity-90">
-                      {capital(c.condition?.description) || 'Outside'} · feels like {fmtNum(c.feelsLike, 0)}°
-                    </div>
+      <div className="relative flex flex-col justify-center gap-2.5 text-ink lg:photo-text lg:min-h-[208px] lg:py-4 lg:pl-[min(31vw,600px)] lg:pr-6 lg:text-white xl:min-h-[216px]">
+        {on ? (
+          <>
+            <div className="flex flex-col gap-3 lg:snap-x lg:snap-mandatory lg:flex-row lg:overflow-x-auto lg:px-4 lg:[scrollbar-width:none] xl:grid xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1.3fr)] xl:overflow-visible xl:px-0">
+              {/* Temperature + humidity */}
+              <div className={`${panel} flex w-full items-center gap-3.5 lg:w-[300px] xl:w-auto`}>
+                <WeatherIcon condition={c.condition} size={42} />
+                <div className="min-w-0 flex-1">
+                  <div className="tabular whitespace-nowrap text-[32px] font-semibold leading-none tracking-[-0.03em]">
+                    {fmtNum(c.temp, 1)}
+                    <span className="ml-0.5 text-[18px] font-medium">°C</span>
+                  </div>
+                  <div className="mt-1 truncate text-[12px] font-medium opacity-90">
+                    {capital(c.condition?.description) || 'Outside'} · feels {fmtNum(c.feelsLike, 0)}°
                   </div>
                 </div>
-                <div className="hidden h-14 w-px bg-white/35 sm:block" />
-                <Metric icon={<Droplet strokeWidth={STROKE} className="h-8 w-8 sm:h-10 sm:w-10" />} accent={DROP} value={fmtNum(c.humidity, 0)} unit="%" label="Humidity" />
+                <div className="h-11 w-px shrink-0 bg-white/35" />
+                <Metric icon={Droplet} accent={DROP} value={fmtNum(c.humidity, 0)} unit="%" label="Humidity" />
               </div>
 
-              <div className="glass-photo grid grid-cols-2 gap-4 rounded-[24px] p-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-                <Metric icon={<Gauge strokeWidth={STROKE} className="h-7 w-7 sm:h-[38px] sm:w-[38px]" />} value={fmtNum(c.pressure, 0)} unit="hPa" label="Pressure" />
-                <div className="hidden h-12 w-px bg-white/35 sm:block" />
+              {/* Pressure + wind */}
+              <div className={`${panel} flex w-full items-center justify-around gap-4 lg:w-[270px] xl:w-auto`}>
+                <Metric icon={Gauge} value={fmtNum(c.pressure, 0)} unit="hPa" label="Pressure" />
+                <div className="h-11 w-px shrink-0 bg-white/35" />
                 <Metric
-                  icon={<Wind strokeWidth={STROKE} className="h-7 w-7 sm:h-[38px] sm:w-[38px]" />}
+                  icon={Wind}
                   value={fmtNum(c.windSpeed, 1)}
                   unit="km/h"
                   label={
                     <span className="inline-flex items-center gap-1">
                       Wind {compass(c.windDeg)}
-                      {c.windDeg != null && <Navigation size={11} strokeWidth={2} style={{ transform: `rotate(${c.windDeg + 180}deg)` }} />}
+                      {c.windDeg != null && <Navigation size={10} strokeWidth={2} style={{ transform: `rotate(${c.windDeg + 180}deg)` }} />}
                     </span>
                   }
                 />
               </div>
 
+              {/* Next 24 h */}
               {outside.forecast?.length > 1 && (
-                <div className="glass-photo rounded-[24px] px-5 pb-4 pt-4">
-                  <div className="flex items-center justify-between gap-3 text-[13px] font-medium">
-                    <span>Next 24 hours</span>
-                    <span className="flex items-center gap-3 opacity-85">
+                <div className={`${panel} w-full !py-3 lg:w-[340px] xl:w-auto`}>
+                  <div className="flex items-center justify-between gap-3 text-[12px] font-medium">
+                    <span className="whitespace-nowrap">Next 24 hours</span>
+                    <span className="flex items-center gap-3 whitespace-nowrap opacity-85">
                       {c.sunrise && (
-                        <span className="inline-flex items-center gap-1"><Sunrise size={14} strokeWidth={STROKE} /> {fmtTime(c.sunrise)}</span>
+                        <span className="inline-flex items-center gap-1"><Sunrise size={13} strokeWidth={STROKE} /> {fmtTime(c.sunrise)}</span>
                       )}
                       {c.sunset && (
-                        <span className="inline-flex items-center gap-1"><Sunset size={14} strokeWidth={STROKE} /> {fmtTime(c.sunset)}</span>
+                        <span className="inline-flex items-center gap-1"><Sunset size={13} strokeWidth={STROKE} /> {fmtTime(c.sunset)}</span>
                       )}
                     </span>
                   </div>
-                  <ForecastLine forecast={outside.forecast} />
+                  <ForecastLine forecast={outside.forecast} compact />
                 </div>
               )}
-
-              <div className="caption-rule mt-1 text-[11px] font-semibold uppercase tracking-[0.22em] opacity-90">
-                <span className="whitespace-nowrap">Outside conditions{place ? ` · ${place}` : ''}</span>
-              </div>
-              <div className="-mt-2 text-center text-[11px] tracking-[0.12em] opacity-75">
-                {outside.source} · updated {fmtTime(outside.fetchedAt)}
-                {outside.stale ? ' · delayed' : ''}
-              </div>
-            </>
-          ) : (
-            <div className="pb-2 lg:pb-0">
-              <div className="caption-rule text-[12px] font-semibold uppercase tracking-[0.24em]">
-                <span className="whitespace-nowrap">Real-time weather data</span>
-              </div>
-              <div className="mt-2 text-center text-[11px] uppercase tracking-[0.28em] opacity-85">Solar-powered ESP32 station</div>
             </div>
-          )}
-        </div>
+
+            <div className="caption-rule text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-3 lg:px-4 lg:text-white lg:opacity-90 xl:px-0">
+              <span className="whitespace-nowrap">
+                Outside{place ? ` · ${place}` : ''}<span className="hidden sm:inline"> · {outside.source}</span> · updated {fmtTime(outside.fetchedAt)}
+                {outside.stale ? ' · delayed' : ''}
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className="px-4 lg:px-0">
+            <div className="caption-rule text-[12px] font-semibold uppercase tracking-[0.24em]">
+              <span className="whitespace-nowrap">Real-time weather data</span>
+            </div>
+            <div className="mt-2 text-center text-[11px] uppercase tracking-[0.28em] opacity-85">Solar-powered ESP32 station</div>
+          </div>
+        )}
       </div>
     </section>
   );

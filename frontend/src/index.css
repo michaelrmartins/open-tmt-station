@@ -6,8 +6,8 @@
   /* Neutral surface */
   --color-canvas: #f3f7fb;
   --color-ink: #16202c;
-  --color-ink-2: #5d6b7a;
-  --color-ink-3: #97a3b0;
+  --color-ink-2: #4f5d6c;
+  --color-ink-3: #7c8896;
 
   /* Palette taken from the station photo, kept soft:
      fg = readable text/icon, bg = tint, line = chart stroke */
@@ -64,34 +64,42 @@
   }
 }
 
-/* Page backdrop: the station photo, heavily blurred and washed out */
+/* Page backdrop: countryside field photo, lightly washed out */
 .backdrop {
   position: fixed;
   inset: 0;
   z-index: -1;
   background-color: #eef4f9;
   background-image:
-    linear-gradient(180deg, rgba(244, 248, 252, 0.8) 0%, rgba(243, 247, 251, 0.86) 45%, rgba(243, 248, 243, 0.9) 100%),
+    linear-gradient(180deg, rgba(244, 248, 252, 0.5) 0%, rgba(243, 247, 251, 0.6) 45%, rgba(243, 248, 243, 0.66) 100%),
     url('/images/backdrop.jpg');
   background-size: cover;
-  background-position: center 30%;
+  background-position: center 40%;
+}
+/* Phones and tablets: no background photo, plain soft gradient */
+@media (max-width: 1023px) {
+  .backdrop {
+    background-image: linear-gradient(180deg, #eef5fb 0%, #f3f7fa 60%, #f1f6f1 100%);
+  }
 }
 
 /* Frosted card on the light page */
 .glass {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.7));
-  -webkit-backdrop-filter: saturate(160%) blur(28px);
-  backdrop-filter: saturate(160%) blur(28px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.32));
+  -webkit-backdrop-filter: saturate(140%) blur(22px);
+  backdrop-filter: saturate(140%) blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.62);
   box-shadow:
     0 1px 1px rgba(20, 50, 90, 0.03),
-    0 14px 34px -14px rgba(30, 80, 140, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 12px 32px -16px rgba(20, 60, 110, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 /* Frosted panel over the banner photo (white text) */
 .glass-photo {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.12));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08)),
+    rgba(14, 48, 92, 0.16);
   -webkit-backdrop-filter: saturate(105%) blur(18px);
   backdrop-filter: saturate(105%) blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.38);
@@ -99,12 +107,24 @@
     0 10px 30px -12px rgba(8, 35, 70, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
-.photo-text {
+/* Phones and tablets: the outside-weather cards sit on the plain page,
+   so they get a solid soft sky instead of see-through glass */
+@media (max-width: 1023px) {
+  .glass-photo {
+    background: linear-gradient(150deg, #6db0e2 0%, #4a8fcd 100%);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 10px 26px -14px rgba(30, 90, 150, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+}
+
+@utility photo-text {
   text-shadow: 0 1px 2px rgba(5, 25, 50, 0.28);
 }
 
 .glass-bar {
-  background: rgba(246, 249, 252, 0.78);
+  background: rgba(246, 249, 252, 0.55);
   -webkit-backdrop-filter: saturate(170%) blur(20px);
   backdrop-filter: saturate(170%) blur(20px);
 }
