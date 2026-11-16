@@ -57,7 +57,7 @@ function BatteryCard({ battery }) {
         <BatteryGlyph percent={battery.percent} tone={tone} charging={charging} />
       </div>
 
-      <div className="mt-5 min-h-[52px] rounded-2xl bg-black/[0.03] px-4 py-3">
+      <div className="mt-5 min-h-[52px] rounded-2xl bg-white/30 px-4 py-3 ring-1 ring-white/45">
         {eta ? (
           <div className="flex items-center gap-3">
             <Hourglass size={18} strokeWidth={ICON_STROKE} className="text-ink-2" aria-hidden="true" />
@@ -212,7 +212,7 @@ function PowerInputCard({ power, rangeLabel }) {
 // ---------------------------------------------------------------------------
 function StatTile({ icon, tone, title, value, unit, hint }) {
   return (
-    <div className="rounded-[20px] bg-white/55 p-4 ring-1 ring-black/[0.04]">
+    <div className="rounded-[20px] bg-white/30 p-4 ring-1 ring-white/50">
       <div className="flex items-center gap-2 text-[12px] font-medium text-ink-2">
         <IconChip icon={icon} tone={tone} size="sm" />
         {title}

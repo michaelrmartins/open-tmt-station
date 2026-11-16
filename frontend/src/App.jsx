@@ -93,9 +93,11 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1240px] px-4 pb-16 pt-6 sm:px-6">
+      <div className="px-4 pt-5 sm:px-6 lg:px-4 lg:pt-4">
         <OutsideBanner outside={outside.data} stationName={station?.name} />
+      </div>
 
+      <main className="mx-auto max-w-[1240px] px-4 pb-16 pt-2 sm:px-6">
         <div className="mt-8 flex flex-wrap items-end justify-between gap-4 px-1">
           <div>
             <h1 className="text-[34px] font-semibold leading-tight tracking-[-0.02em] sm:text-[40px]">Current conditions</h1>
@@ -131,6 +133,12 @@ export default function App() {
         <footer className="caption-rule mt-14 text-[11px] font-medium uppercase tracking-[0.2em] text-ink-3">
           <span className="text-center">Data refreshes automatically every 30 seconds{meta.data?.mock ? ' · Demo data' : ''}</span>
         </footer>
+        <p className="mt-3 text-center text-[11px] text-ink-3">
+          Background photo by{' '}
+          <a className="underline decoration-ink-3/40 underline-offset-2 hover:text-ink-2" href="https://www.magnific.com/free-photo/countryside-field-sunny-day-countryside_11502869.htm" target="_blank" rel="noopener noreferrer">
+            Freepik on Magnific
+          </a>
+        </p>
       </main>
     </>
   );
