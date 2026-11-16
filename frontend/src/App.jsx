@@ -130,10 +130,10 @@ export default function App() {
         <SectionTitle title="System" subtitle="Device health" />
         <SystemSection snapshot={snapshot.data} />
 
-        <footer className="caption-rule mt-14 text-[11px] font-medium uppercase tracking-[0.2em] text-ink-3">
+        <footer className="caption-rule mt-14 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-2">
           <span className="text-center">Data refreshes automatically every 30 seconds{meta.data?.mock ? ' · Demo data' : ''}</span>
         </footer>
-        <p className="mt-3 text-center text-[11px] text-ink-3">
+        <p className="mt-3 text-center text-[11px] font-medium text-ink-2">
           Background photo by{' '}
           <a className="underline decoration-ink-3/40 underline-offset-2 hover:text-ink-2" href="https://www.magnific.com/free-photo/countryside-field-sunny-day-countryside_11502869.htm" target="_blank" rel="noopener noreferrer">
             Freepik on Magnific

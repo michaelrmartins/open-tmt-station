@@ -11,7 +11,7 @@ function BatteryGlyph({ percent, tone, charging }) {
   const p = Math.max(0, Math.min(100, percent ?? 0));
   return (
     <div className="relative flex items-center" aria-hidden="true">
-      <div className="relative h-[72px] w-[150px] rounded-[22px] border-[2.5px] p-[5px]" style={{ borderColor: 'rgba(0,0,0,0.14)' }}>
+      <div className="relative h-[72px] w-[150px] rounded-[22px] border-[2.5px] p-[5px]" style={{ borderColor: 'var(--track-strong)' }}>
         <div className="h-full rounded-[15px] transition-[width] duration-1000 ease-out" style={{ width: `${Math.max(p, 4)}%`, background: `linear-gradient(180deg, ${t.line}, ${t.fg})`, opacity: 0.85 }} />
         {charging && (
           <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]">
@@ -19,7 +19,7 @@ function BatteryGlyph({ percent, tone, charging }) {
           </span>
         )}
       </div>
-      <div className="ml-[3px] h-6 w-[6px] rounded-r-[4px]" style={{ background: 'rgba(0,0,0,0.14)' }} />
+      <div className="ml-[3px] h-6 w-[6px] rounded-r-[4px]" style={{ background: 'var(--track-strong)' }} />
     </div>
   );
 }
@@ -57,7 +57,7 @@ function BatteryCard({ battery }) {
         <BatteryGlyph percent={battery.percent} tone={tone} charging={charging} />
       </div>
 
-      <div className="mt-5 min-h-[52px] rounded-2xl bg-white/30 px-4 py-3 ring-1 ring-white/45">
+      <div className="mt-5 min-h-[52px] rounded-2xl bg-white/[0.08] px-4 py-3 ring-1 ring-white/15">
         {eta ? (
           <div className="flex items-center gap-3">
             <Hourglass size={18} strokeWidth={ICON_STROKE} className="text-ink-2" aria-hidden="true" />
@@ -175,7 +175,7 @@ function PowerInputCard({ power, rangeLabel }) {
 
       {/* Scale with the charger / USB-spec zone */}
       <div className="mt-6">
-        <div className="relative h-2 rounded-full bg-black/[0.06]">
+        <div className="relative h-2 rounded-full bg-[var(--track)]">
           <div className="absolute inset-y-0 rounded-full" style={{ left: pos(zone[0]), width: `calc(${pos(zone[1])} - ${pos(zone[0])})`, background: TONES.sage.bg }} />
           <div className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-1000" style={{ width: pos(power.voltage), background: TONES[tone].line }} />
           <div className="absolute -top-1 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-white shadow" style={{ left: pos(power.voltage), background: TONES[tone].fg }} />
@@ -212,7 +212,7 @@ function PowerInputCard({ power, rangeLabel }) {
 // ---------------------------------------------------------------------------
 function StatTile({ icon, tone, title, value, unit, hint }) {
   return (
-    <div className="rounded-[20px] bg-white/30 p-4 ring-1 ring-white/50">
+    <div className="rounded-[20px] bg-white/[0.08] p-4 ring-1 ring-white/15">
       <div className="flex items-center gap-2 text-[12px] font-medium text-ink-2">
         <IconChip icon={icon} tone={tone} size="sm" />
         {title}
@@ -239,7 +239,7 @@ function EnergyStatsCard({ energy, rangeLabel }) {
 
       {/* Share bar */}
       <div className="mt-5">
-        <div className="flex h-3 overflow-hidden rounded-full bg-black/[0.05]">
+        <div className="flex h-3 overflow-hidden rounded-full bg-[var(--track)]">
           <div className="h-full transition-[width] duration-1000" style={{ width: `${srcPct}%`, background: TONES[solar ? 'apricot' : 'sky'].line }} />
           <div className="h-full transition-[width] duration-1000" style={{ width: `${batPct}%`, background: TONES.sage.line }} />
         </div>

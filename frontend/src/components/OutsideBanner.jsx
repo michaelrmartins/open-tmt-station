@@ -118,16 +118,25 @@ export function OutsideBanner({ outside, stationName }) {
 
   return (
     <section className="relative lg:overflow-hidden lg:rounded-[28px] lg:shadow-[0_20px_50px_-26px_rgba(15,60,110,0.45)] lg:ring-1 lg:ring-white/60">
+      {/* Scene extension (sky, trees, grass) at the same scale, so the horizon lines up */}
+      <img
+        src="/images/station-banner-fill.jpg"
+        alt=""
+        aria-hidden="true"
+        className="absolute left-0 top-[-8%] hidden h-[172%] w-full object-fill lg:block"
+      />
+      {/* The station photo, scaled so the whole pole, box and solar panels fit, fading to the right */}
       <img
         src="/images/station-banner.jpg"
         srcSet="/images/station-banner-1200.jpg 1200w, /images/station-banner.jpg 2048w"
-        sizes="100vw"
+        sizes="1100px"
         alt={`${stationName || 'Weather station'}: solar-powered ESP32 sensor box on a pole in an open field`}
-        className="absolute inset-0 hidden h-full w-full object-cover object-[16%_58%] lg:block"
+        className="absolute left-0 top-[-8%] hidden h-[172%] w-auto max-w-none lg:block"
+        style={{ maskImage: 'linear-gradient(90deg, #000 50%, transparent 92%)', WebkitMaskImage: 'linear-gradient(90deg, #000 50%, transparent 92%)' }}
       />
       <div className="absolute inset-0 hidden bg-gradient-to-r from-transparent via-[rgba(10,45,90,0.04)] to-[rgba(10,45,90,0.22)] lg:block" />
 
-      <div className="relative flex flex-col justify-center gap-2.5 text-ink lg:photo-text lg:min-h-[208px] lg:py-4 lg:pl-[min(31vw,600px)] lg:pr-6 lg:text-white xl:min-h-[216px]">
+      <div className="relative flex flex-col justify-center gap-2.5 text-ink lg:photo-text lg:min-h-[208px] lg:py-4 lg:pl-[420px] 2xl:pl-[460px] lg:pr-6 lg:text-white xl:min-h-[216px]">
         {on ? (
           <>
             <div className="flex flex-col gap-3 lg:snap-x lg:snap-mandatory lg:flex-row lg:overflow-x-auto lg:px-4 lg:[scrollbar-width:none] xl:grid xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1.3fr)] xl:overflow-visible xl:px-0">

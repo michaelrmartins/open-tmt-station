@@ -6,7 +6,7 @@ import { useNow } from '../hooks/usePolling.js';
 
 function Meter({ value, tone }) {
   return (
-    <div className="mt-4 h-1.5 rounded-full bg-black/[0.06]">
+    <div className="mt-4 h-1.5 rounded-full bg-[var(--track)]">
       <div className="h-full rounded-full transition-[width] duration-1000" style={{ width: `${Math.max(0, Math.min(100, value ?? 0))}%`, background: TONES[tone].line }} />
     </div>
   );
