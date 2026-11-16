@@ -75,14 +75,14 @@ export function HistoryChart({ points, tone = 'sky', unit, digits = 1, rangeMs, 
               <stop offset="100%" stopColor={t.line} stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} stroke="rgba(20,50,90,0.06)" />
+          <CartesianGrid vertical={false} stroke="var(--hair)" />
           <XAxis
             dataKey="t"
             type="number"
             scale="time"
             domain={['dataMin', 'dataMax']}
             tickFormatter={tick}
-            tick={{ fill: '#a1a1a6', fontSize: 11 }}
+            tick={{ fill: 'var(--axis)', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
             minTickGap={48}
@@ -90,15 +90,15 @@ export function HistoryChart({ points, tone = 'sky', unit, digits = 1, rangeMs, 
           <YAxis
             domain={domain || ['auto', 'auto']}
             tickFormatter={(v) => fmtNum(v, Math.abs(v) >= 100 ? 0 : digits)}
-            tick={{ fill: '#a1a1a6', fontSize: 11 }}
+            tick={{ fill: 'var(--axis)', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
             width={44}
             allowDataOverflow={false}
           />
           {band && <ReferenceArea y1={band[0]} y2={band[1]} fill={t.line} fillOpacity={0.08} stroke="none" ifOverflow="hidden" />}
-          {reference && <ReferenceLine y={reference.value} stroke="rgba(0,0,0,0.18)" strokeDasharray="4 4" ifOverflow="hidden" label={{ value: reference.label, position: 'insideTopRight', fill: '#a1a1a6', fontSize: 11 }} />}
-          <Tooltip content={<ChartTooltip unit={unit} digits={digits} />} cursor={{ stroke: 'rgba(20,50,90,0.15)', strokeWidth: 1 }} />
+          {reference && <ReferenceLine y={reference.value} stroke="var(--hair-strong)" strokeDasharray="4 4" ifOverflow="hidden" label={{ value: reference.label, position: 'insideTopRight', fill: 'var(--axis)', fontSize: 11 }} />}
+          <Tooltip content={<ChartTooltip unit={unit} digits={digits} />} cursor={{ stroke: 'var(--hair-strong)', strokeWidth: 1 }} />
           <Area type="monotone" dataKey="v" stroke={t.line} strokeWidth={2.25} fill={`url(#hc-${id})`} dot={<EndDot last={data.length - 1} color={t.line} r={4} />} activeDot={{ r: 4.5, fill: '#fff', stroke: t.fg, strokeWidth: 2 }} animationDuration={600} />
         </AreaChart>
       </ResponsiveContainer>

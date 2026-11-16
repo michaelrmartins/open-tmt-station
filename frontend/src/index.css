@@ -64,14 +64,24 @@
   }
 }
 
-/* Page backdrop: countryside field photo, lightly washed out */
+/* Neutral helpers used by tracks, hairlines and axes (light context) */
+:root {
+  --track: rgba(20, 50, 90, 0.07);
+  --track-strong: rgba(20, 50, 90, 0.16);
+  --hair: rgba(20, 50, 90, 0.08);
+  --hair-strong: rgba(20, 50, 90, 0.18);
+  --axis: #7c8896;
+  --seg-bg: rgba(255, 255, 255, 0.55);
+}
+
+/* Page backdrop: countryside field photo, desaturated and cooled so cards stand out */
 .backdrop {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background-color: #eef4f9;
+  background-color: #e9eff4;
   background-image:
-    linear-gradient(180deg, rgba(244, 248, 252, 0.5) 0%, rgba(243, 247, 251, 0.6) 45%, rgba(243, 248, 243, 0.66) 100%),
+    linear-gradient(180deg, rgba(236, 243, 249, 0.42) 0%, rgba(232, 239, 245, 0.5) 50%, rgba(228, 236, 238, 0.58) 100%),
     url('/images/backdrop.jpg');
   background-size: cover;
   background-position: center 40%;
@@ -83,16 +93,65 @@
   }
 }
 
-/* Frosted card on the light page */
+/* Cards: the same tinted frosted glass as the banner panels, with white text.
+   The colour tokens are redefined inside, so every card adapts automatically. */
 .glass {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.32));
-  -webkit-backdrop-filter: saturate(140%) blur(22px);
-  backdrop-filter: saturate(140%) blur(22px);
-  border: 1px solid rgba(255, 255, 255, 0.62);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05)),
+    rgba(22, 50, 84, 0.44);
+  -webkit-backdrop-filter: saturate(110%) blur(22px);
+  backdrop-filter: saturate(110%) blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow:
-    0 1px 1px rgba(20, 50, 90, 0.03),
-    0 12px 32px -16px rgba(20, 60, 110, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    0 18px 40px -22px rgba(8, 30, 60, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  text-shadow: 0 1px 1px rgba(5, 20, 40, 0.18);
+
+  --color-ink: #ffffff;
+  --color-ink-2: rgba(255, 255, 255, 0.8);
+  --color-ink-3: rgba(255, 255, 255, 0.6);
+
+  --color-peach: #ffc9a8;
+  --color-peach-bg: rgba(255, 170, 120, 0.2);
+  --color-sky: #aadcff;
+  --color-sky-bg: rgba(120, 190, 255, 0.2);
+  --color-lilac: #d0d3ff;
+  --color-lilac-bg: rgba(170, 175, 255, 0.2);
+  --color-butter: #ffe08f;
+  --color-butter-bg: rgba(255, 215, 110, 0.2);
+  --color-sage: #bdeea8;
+  --color-sage-bg: rgba(150, 230, 130, 0.18);
+  --color-apricot: #ffd39e;
+  --color-apricot-bg: rgba(255, 190, 110, 0.2);
+  --color-teal: #a8ece6;
+  --color-teal-bg: rgba(120, 220, 210, 0.18);
+  --color-rose: #f7c6dc;
+  --color-rose-bg: rgba(240, 160, 200, 0.18);
+  --color-coral: #ffb8ae;
+  --color-coral-bg: rgba(255, 150, 140, 0.2);
+  --color-slate: #dbe4ee;
+  --color-slate-bg: rgba(255, 255, 255, 0.14);
+
+  --track: rgba(255, 255, 255, 0.16);
+  --track-strong: rgba(255, 255, 255, 0.42);
+  --hair: rgba(255, 255, 255, 0.14);
+  --hair-strong: rgba(255, 255, 255, 0.3);
+  --axis: rgba(255, 255, 255, 0.62);
+  --seg-bg: rgba(255, 255, 255, 0.12);
+}
+.glass .chip {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+/* Phones and tablets: no photo behind the cards, so use a solid soft slate-blue */
+@media (max-width: 1023px) {
+  .glass {
+    background: linear-gradient(160deg, #5c86b0 0%, #426c97 100%);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 /* Frosted panel over the banner photo (white text) */
