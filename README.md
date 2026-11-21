@@ -75,6 +75,7 @@ Measurement `mqtt_consumer`, filtered with `"topic" =~ /^tele\/esp32_varanda\//`
 | `wifiSignal`          | `Wifi_Signal`        | dBm  | Tasmota STATE     |
 | `loadAvg`             | `LoadAvg`            | %    | Tasmota STATE     |
 | `uptime`              | `UptimeSec`          | s    | Tasmota STATE     |
+| `deepSleep`           | `DeepSleepTime`      | s    | Tasmota SENSOR (configured sleep interval, 0 = disabled) |
 
 The API runs one aggregated InfluxQL query per request type, for example (range `24h`):
 
@@ -153,5 +154,6 @@ Ported from the dashboard's HTML Graphics panels (`backend/src/lib/calculations.
 | DC input | Solar: charger active ≥ 4.3 V, limit ≥ 4.0 V, sun levels. PSU: USB spec 4.75–5.25 V. Ripple is the peak-to-peak value over 30 min. The charge window is the time spent at or above 4.3 V |
 | Wi-Fi quality | `2 × (dBm + 100)`, clamped to 0–100 % |
 | Uptime | Boot time = last report time − `UptimeSec`. A restart is counted when the counter drops by more than 5 s |
+| Deep sleep | Configured interval (`DeepSleepTime`, 0 = off). Next wake-up = last report + interval. Considered stale only after two missed wake-ups. Configuration changes inside the window are reported |
 
 The charge level is estimated linearly from voltage, as in Grafana. Treat autonomy figures as approximations.

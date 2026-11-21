@@ -6,7 +6,7 @@ Parameters:
 
 - `range`: `1h`, `3h`, `6h`, `12h`, `24h`, `7d`, `30d`
 - `mode`: `solar` or `psu` (default from `POWER_MODE`)
-- `metrics`: comma-separated list of `temperature`, `humidity`, `pressure`, `internalTemperature`, `illuminance`, `sourceVoltage`, `batteryVoltage`, `wifiSignal`, `loadAvg`, `uptime`
+- `metrics`: comma-separated list of `temperature`, `humidity`, `pressure`, `internalTemperature`, `illuminance`, `sourceVoltage`, `batteryVoltage`, `wifiSignal`, `loadAvg`, `uptime`, `deepSleep`
 
 Common fields in derived metrics:
 
@@ -329,3 +329,11 @@ External weather from OpenWeather. This endpoint never calls OpenWeather: it ret
 ```
 
 Wind speeds are in km/h, `pop` is the probability of precipitation in %, `forecast` has 8 entries (3 h steps, next 24 h). Returns `{ "enabled": false }` when no key or location is configured. In `MOCK_DATA` mode without a key it returns demo data.
+
+### `metrics.deepSleep` (in `/api/snapshot`)
+
+```json
+{ "unit": "s", "value": 300, "enabled": true, "nextWakeAt": 1700000300000, "changedAt": null, "previous": null, "time": 1700000000000, "stale": false }
+```
+
+`value` is `DeepSleepTime` in seconds (`0` = disabled). `nextWakeAt` = last report + interval. `changedAt` / `previous` describe the most recent change of the setting within the last 3 h.

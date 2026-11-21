@@ -241,6 +241,34 @@ export function uptime(pts, now = Date.now()) {
   return { unit: 's', value: Math.round(live), reported: last.v, bootTime: last.t - last.v * 1000, restarts, recentBoot: last.v < THRESHOLDS.uptime.recentBootS, time: last.t, stale };
 }
 
+/**
+ * Deep sleep (DeepSleepTime, seconds): configured sleep interval between wake-ups.
+ * 0 means deep sleep is disabled (Tasmota). While enabled, the next report is expected
+ * around last report + interval, so "stale" only kicks in after two missed wake-ups.
+ */
+export function deepSleep(pts, now = Date.now()) {
+  const p = pts.filter((x) => x.v >= 0);
+  if (!p.length) return { unit: 's', value: null, enabled: null, nextWakeAt: null, changedAt: null, previous: null, time: null, stale: true };
+  const last = p[p.length - 1];
+  const enabled = last.v > 0;
+  // Most recent configuration change inside the window
+  let changedAt = null, previous = null;
+  for (let i = p.length - 1; i > 0; i--) {
+    if (p[i - 1].v !== p[i].v) { changedAt = p[i].t; previous = p[i - 1].v; break; }
+  }
+  const staleMs = enabled ? Math.max(THRESHOLDS.staleMs, 2 * last.v * 1000 + 60e3) : THRESHOLDS.staleMs;
+  return {
+    unit: 's',
+    value: Math.round(last.v),
+    enabled,
+    nextWakeAt: enabled ? last.t + last.v * 1000 : null,
+    changedAt,
+    previous,
+    time: last.t,
+    stale: now - last.t > staleMs,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Energy
 // ---------------------------------------------------------------------------
