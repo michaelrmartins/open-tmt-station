@@ -39,6 +39,8 @@ export const THRESHOLDS = {
     gapMs: 10 * MIN, // longer gaps don't count as time
   },
   uptime: { recentBootS: 3600 },
+  // Time allowed after the deep sleep interval for boot + Wi-Fi + MQTT before the station counts as offline
+  deepSleep: { graceMs: 90e3 },
 };
 
 // Level scales: { max } => first level where value < max.
@@ -244,7 +246,7 @@ export function uptime(pts, now = Date.now()) {
 /**
  * Deep sleep (DeepSleepTime, seconds): configured sleep interval between wake-ups.
  * 0 means deep sleep is disabled (Tasmota). While enabled, the next report is expected
- * around last report + interval, so "stale" only kicks in after two missed wake-ups.
+ * around last report + interval; it only counts as stale once that wake-up is missed.
  */
 export function deepSleep(pts, now = Date.now()) {
   const p = pts.filter((x) => x.v >= 0);
@@ -256,7 +258,7 @@ export function deepSleep(pts, now = Date.now()) {
   for (let i = p.length - 1; i > 0; i--) {
     if (p[i - 1].v !== p[i].v) { changedAt = p[i].t; previous = p[i - 1].v; break; }
   }
-  const staleMs = enabled ? Math.max(THRESHOLDS.staleMs, 2 * last.v * 1000 + 60e3) : THRESHOLDS.staleMs;
+  const staleMs = enabled ? Math.max(THRESHOLDS.staleMs, last.v * 1000 + THRESHOLDS.deepSleep.graceMs) : THRESHOLDS.staleMs;
   return {
     unit: 's',
     value: Math.round(last.v),
@@ -267,6 +269,23 @@ export function deepSleep(pts, now = Date.now()) {
     time: last.t,
     stale: now - last.t > staleMs,
   };
+}
+
+/**
+ * Connection status of the station.
+ *  - online:   last reading within the live window (5 min);
+ *  - sleeping: deep sleep is on, its interval is longer than the live window, and the next
+ *              wake-up (last reading + interval + grace) has not been missed yet;
+ *  - offline:  otherwise.
+ * Returns the instants of each transition so a client can switch states between polls.
+ */
+export function connectionStatus(lastUpdate, sleep, now = Date.now()) {
+  if (lastUpdate == null) return { status: 'offline', sleepingAt: null, offlineAt: null };
+  const sleepingAt = lastUpdate + THRESHOLDS.staleMs;
+  const sleepMs = sleep?.enabled ? sleep.value * 1000 : 0;
+  const offlineAt = sleepMs > THRESHOLDS.staleMs ? lastUpdate + sleepMs + THRESHOLDS.deepSleep.graceMs : sleepingAt;
+  const status = now <= sleepingAt ? 'online' : now <= offlineAt ? 'sleeping' : 'offline';
+  return { status, sleepingAt: offlineAt > sleepingAt ? sleepingAt : null, offlineAt };
 }
 
 // ---------------------------------------------------------------------------

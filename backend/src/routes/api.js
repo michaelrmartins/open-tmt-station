@@ -126,7 +126,11 @@ export function createApiRouter({ config, repo, cache, weather }) {
           mode,
           generatedAt: ctx.now,
           lastUpdate,
-          online: lastUpdate !== null && ctx.now - lastUpdate <= calc.THRESHOLDS.staleMs,
+          ...(() => {
+            const c = calc.connectionStatus(lastUpdate, metrics.deepSleep, ctx.now);
+            // status: online | sleeping | offline; sleepingAt / offlineAt let the page switch on time
+            return { online: c.status === 'online', status: c.status, sleepingAt: c.sleepingAt, offlineAt: c.offlineAt, nextWakeAt: metrics.deepSleep.nextWakeAt };
+          })(),
           metrics,
           flow: {
             state: flow.state,

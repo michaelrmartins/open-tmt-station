@@ -125,6 +125,22 @@ test('deep sleep: interval, next wake-up and config change', () => {
   assert.equal(c.deepSleep([], now).value, null);
 });
 
+test('connection status: online, sleeping during long deep sleep, then offline', () => {
+  const sleep = (v) => ({ enabled: v > 0, value: v });
+  const last = now - 10 * MIN;
+  // 30 min deep sleep: 10 min after the last reading it is sleeping, not offline
+  let s = c.connectionStatus(last, sleep(1800), now);
+  assert.equal(s.status, 'sleeping');
+  assert.equal(s.offlineAt, last + 1800e3 + 90e3);
+  assert.equal(c.connectionStatus(last, sleep(1800), last + 1800e3 + 91e3).status, 'offline');
+  assert.equal(c.connectionStatus(now - 2 * MIN, sleep(1800), now).status, 'online');
+  // deep sleep off, or shorter than the 5 min live window: plain 5 min rule
+  assert.equal(c.connectionStatus(last, sleep(0), now).status, 'offline');
+  assert.equal(c.connectionStatus(last, sleep(120), now).status, 'offline');
+  assert.equal(c.connectionStatus(last, sleep(120), now).sleepingAt, null);
+  assert.equal(c.connectionStatus(null, sleep(1800), now).status, 'offline');
+});
+
 test('wifi and uptime', () => {
   const w = c.wifi([{ t: now, v: -65 }], now);
   assert.equal(w.quality, 70);

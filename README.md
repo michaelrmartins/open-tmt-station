@@ -154,6 +154,7 @@ Ported from the dashboard's HTML Graphics panels (`backend/src/lib/calculations.
 | DC input | Solar: charger active ≥ 4.3 V, limit ≥ 4.0 V, sun levels. PSU: USB spec 4.75–5.25 V. Ripple is the peak-to-peak value over 30 min. The charge window is the time spent at or above 4.3 V |
 | Wi-Fi quality | `2 × (dBm + 100)`, clamped to 0–100 % |
 | Uptime | Boot time = last report time − `UptimeSec`. A restart is counted when the counter drops by more than 5 s |
-| Deep sleep | Configured interval (`DeepSleepTime`, 0 = off). Next wake-up = last report + interval. Considered stale only after two missed wake-ups. Configuration changes inside the window are reported |
+| Deep sleep | Configured interval (`DeepSleepTime`, 0 = off). Next wake-up = last report + interval. Configuration changes inside the window are reported |
+| Connection status | **Live** (green): last reading within 5 min. **Sleeping** (amber): deep sleep is on, its interval is longer than 5 min, and the next wake-up (last reading + interval + 90 s grace for boot, Wi-Fi and MQTT) has not been missed. **Offline** (red): otherwise |
 
 The charge level is estimated linearly from voltage, as in Grafana. Treat autonomy figures as approximations.
