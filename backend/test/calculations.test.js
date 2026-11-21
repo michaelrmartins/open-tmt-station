@@ -141,6 +141,26 @@ test('connection status: online, sleeping during long deep sleep, then offline',
   assert.equal(c.connectionStatus(null, sleep(1800), now).status, 'offline');
 });
 
+test('connection status: no red flash when deep sleep equals the live window', () => {
+  const sleep = (v) => ({ enabled: v > 0, value: v });
+  const last = now - 5.5 * MIN;
+  // 5 min deep sleep, 5 min window: between 5:00 and 6:30 it is sleeping (used to be offline)
+  assert.equal(c.connectionStatus(last, sleep(300), now).status, 'sleeping');
+  assert.equal(c.connectionStatus(last, sleep(300), last + 391e3).status, 'offline');
+});
+
+test('connection status: custom live window and grace', () => {
+  const sleep = (v) => ({ enabled: v > 0, value: v });
+  const last = now - 4 * MIN;
+  const opts = { liveWindowMs: 3 * MIN, graceMs: 60e3 };
+  // 3 min window, 5 min deep sleep: live until 3:00, sleeping until 6:00, then offline
+  assert.equal(c.connectionStatus(last, sleep(300), last + 2 * MIN, opts).status, 'online');
+  assert.equal(c.connectionStatus(last, sleep(300), now, opts).status, 'sleeping');
+  assert.equal(c.connectionStatus(last, sleep(300), last + 361e3, opts).status, 'offline');
+  // 2 min deep sleep with a 3 min window: readings arrive before the window ends, stays live
+  assert.equal(c.connectionStatus(now - 2.3 * MIN, sleep(120), now, opts).status, 'online');
+});
+
 test('wifi and uptime', () => {
   const w = c.wifi([{ t: now, v: -65 }], now);
   assert.equal(w.quality, 70);

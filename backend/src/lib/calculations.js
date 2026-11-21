@@ -273,17 +273,19 @@ export function deepSleep(pts, now = Date.now()) {
 
 /**
  * Connection status of the station.
- *  - online:   last reading within the live window (5 min);
- *  - sleeping: deep sleep is on, its interval is longer than the live window, and the next
- *              wake-up (last reading + interval + grace) has not been missed yet;
+ *  - online:   last reading within the live window (LIVE_WINDOW_SECONDS, default 5 min);
+ *  - sleeping: past the live window, deep sleep is on and the expected wake-up
+ *              (last reading + interval + grace) has not been missed yet;
  *  - offline:  otherwise.
+ * With deep sleep on, "offline" never comes before the expected wake-up, whatever the
+ * interval is compared with the live window, so the indicator does not flash red each cycle.
  * Returns the instants of each transition so a client can switch states between polls.
  */
-export function connectionStatus(lastUpdate, sleep, now = Date.now()) {
+export function connectionStatus(lastUpdate, sleep, now = Date.now(), { liveWindowMs = THRESHOLDS.staleMs, graceMs = THRESHOLDS.deepSleep.graceMs } = {}) {
   if (lastUpdate == null) return { status: 'offline', sleepingAt: null, offlineAt: null };
-  const sleepingAt = lastUpdate + THRESHOLDS.staleMs;
-  const sleepMs = sleep?.enabled ? sleep.value * 1000 : 0;
-  const offlineAt = sleepMs > THRESHOLDS.staleMs ? lastUpdate + sleepMs + THRESHOLDS.deepSleep.graceMs : sleepingAt;
+  const sleepingAt = lastUpdate + liveWindowMs;
+  const wakeDeadline = sleep?.enabled ? lastUpdate + sleep.value * 1000 + graceMs : null;
+  const offlineAt = wakeDeadline !== null && wakeDeadline > sleepingAt ? wakeDeadline : sleepingAt;
   const status = now <= sleepingAt ? 'online' : now <= offlineAt ? 'sleeping' : 'offline';
   return { status, sleepingAt: offlineAt > sleepingAt ? sleepingAt : null, offlineAt };
 }
