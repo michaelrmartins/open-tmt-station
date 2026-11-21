@@ -132,7 +132,7 @@ function PowerFlowCard({ snapshot }) {
         <div className={`flow-h mx-2 mb-9 h-[3px] ${srcOn ? 'is-active' : ''}`} style={{ color: TONES[srcTone].line }} />
         <FlowNode icon={CircuitBoard} tone={state.tone} title="CN3065" value={charging ? 'Charging' : onBattery ? 'Bypass' : 'Complete'} />
         <div className="flow-h is-active mx-2 mb-9 h-[3px]" style={{ color: TONES[loadTone].line }} />
-        <FlowNode icon={Cpu} tone={loadTone} title="ESP32" value={snapshot.online ? 'Running' : 'No recent data'} />
+        <FlowNode icon={Cpu} tone={loadTone} title="ESP32" value={snapshot.status === 'sleeping' ? 'Sleeping' : snapshot.online ? 'Running' : 'No recent data'} />
 
         <div />
         <div />

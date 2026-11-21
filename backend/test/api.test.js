@@ -33,6 +33,7 @@ test('endpoints (MOCK_DATA)', async () => {
     assert.equal(snap.status, 200);
     assert.ok(snap.body.metrics.temperature.value !== null);
     assert.equal(snap.body.metrics.deepSleep.value, 300);
+    assert.ok(['online', 'sleeping', 'offline'].includes(snap.body.status));
     assert.ok(['battery', 'charging', 'full'].includes(snap.body.flow.state));
 
     const hist = await get('/history?range=24h&metrics=temperature,batteryVoltage');

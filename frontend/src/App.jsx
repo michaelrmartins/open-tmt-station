@@ -30,15 +30,47 @@ function readRange() {
   }
 }
 
+/**
+ * online   -> green "Live"
+ * sleeping -> amber "Sleeping" (deep sleep longer than the 5 min live window, next wake-up not missed yet)
+ * offline  -> red "Offline"
+ * Uses the transition instants from the API, so the badge switches on time between polls.
+ */
+function connectionState(snapshot, error, now) {
+  if (!snapshot) return 'connecting';
+  if (error || snapshot.offlineAt == null) return 'offline';
+  if (now <= (snapshot.sleepingAt ?? snapshot.offlineAt)) return 'online';
+  return now <= snapshot.offlineAt ? 'sleeping' : 'offline';
+}
+
+const BADGE = {
+  online: { label: 'Live', dot: '#7cc57a', pulse: true },
+  sleeping: { label: 'Sleeping', dot: '#efbf55', pulse: false },
+  offline: { label: 'Offline', dot: '#e0675c', pulse: false },
+  connecting: { label: 'Connecting', dot: '#b4c0cd', pulse: false },
+};
+
 function StatusBadge({ snapshot, error }) {
-  useNow(15000);
-  const online = snapshot?.online && !error;
-  const color = online ? 'var(--color-sage-line)' : 'var(--color-coral-line)';
+  const now = useNow(5000);
+  const state = connectionState(snapshot, error, now);
+  const b = BADGE[state];
+  const wake = snapshot?.nextWakeAt;
+  let detail = null;
+  if (state === 'online' && snapshot?.lastUpdate) detail = `Updated ${fmtAgo(snapshot.lastUpdate, now)}`;
+  if (state === 'sleeping') detail = wake && wake > now ? `Wakes up around ${fmtTime(wake)}` : 'Waking up';
+  if (state === 'offline' && snapshot?.lastUpdate) detail = `Last seen ${fmtAgo(snapshot.lastUpdate, now)}`;
   return (
-    <div className="flex items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 text-[12px] font-medium text-ink-2 ring-1 ring-black/[0.05]">
-      <span className={`h-2 w-2 rounded-full ${online ? 'live-dot' : ''}`} style={{ background: color, color }} />
-      <span className="text-ink">{online ? 'Live' : snapshot ? 'Offline' : 'Connecting'}</span>
-      {snapshot?.lastUpdate && <span className="hidden sm:inline">· Updated {fmtAgo(snapshot.lastUpdate)}</span>}
+    <div className="flex items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 text-[12px] font-medium text-ink-2 ring-1 ring-black/[0.05]" role="status" aria-live="polite">
+      <span className={`h-2 w-2 rounded-full ${b.pulse ? 'live-dot' : ''}`} style={{ background: b.dot, color: b.dot }} />
+      <span className="text-ink">{b.label}</span>
+      {state === 'sleeping' && (
+        <span className="zzz" aria-hidden="true">
+          <span>z</span>
+          <span>z</span>
+          <span>Z</span>
+        </span>
+      )}
+      {detail && <span className="hidden sm:inline">· {detail}</span>}
     </div>
   );
 }
