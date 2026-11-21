@@ -98,7 +98,7 @@
 .glass {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
-    rgba(19, 45, 80, 0.7);
+    rgba(19, 45, 80, 0.8);
   /* Text that has no colour class inherits from here (otherwise it would inherit the dark body colour) */
   color: #ffffff;
   -webkit-backdrop-filter: saturate(120%) blur(24px);

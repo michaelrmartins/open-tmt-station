@@ -76,7 +76,7 @@ export default function App() {
       <header className="glass-bar sticky top-0 z-20 border-b border-black/[0.05]">
         <div className="mx-auto flex max-w-[1240px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] text-white shadow-sm" style={{ background: 'linear-gradient(140deg, #ffd88a 0%, #7cc4ee 55%, #3f8fd0 100%)' }}>
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] text-white shadow-sm">
               <CloudSun size={20} strokeWidth={ICON_STROKE} aria-hidden="true" />
             </span>
             <div className="min-w-0">
@@ -131,7 +131,7 @@ export default function App() {
         <SystemSection snapshot={snapshot.data} />
 
         <footer className="caption-rule mt-14 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-2">
-          <span className="text-center">Data refreshes automatically every 30 seconds{meta.data?.mock ? ' · Demo data' : ''}</span>
+          <span className="text-center">Michael Martins - 2026{meta.data?.mock ? ' · Demo data' : ''}</span>
         </footer>
         <p className="mt-3 text-center text-[11px] font-medium text-ink-2">
           Background photo by{' '}
