@@ -344,7 +344,7 @@ Wind speeds are in km/h, `pop` is the probability of precipitation in %, `foreca
 { "online": false, "status": "sleeping", "sleepingAt": 1700000300000, "offlineAt": 1700001890000, "nextWakeAt": 1700001800000 }
 ```
 
-- `status`: `online` (last reading within 5 min), `sleeping` (deep sleep longer than 5 min and the next wake-up not missed yet) or `offline`.
-- `sleepingAt`: when `online` turns into `sleeping` (null when deep sleep is off or shorter than 5 min).
-- `offlineAt`: when the station counts as offline: last reading + deep sleep interval + 90 s, or last reading + 5 min without deep sleep.
+- `status`: `online` (last reading within `LIVE_WINDOW_SECONDS`), `sleeping` (past that window, deep sleep on, next wake-up not missed yet) or `offline`.
+- `sleepingAt`: when `online` turns into `sleeping` (null when no sleeping phase applies).
+- `offlineAt`: when the station counts as offline: the later of last reading + `LIVE_WINDOW_SECONDS` and last reading + deep sleep interval + `DEEP_SLEEP_GRACE_SECONDS`.
 - `online` is kept for compatibility and is `true` only for `status: "online"`.

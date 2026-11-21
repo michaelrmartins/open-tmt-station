@@ -31,6 +31,11 @@ export const config = {
     location: process.env.STATION_LOCATION || '',
     // Power source on the DC input: 'solar' (panel) or 'psu' (5 V USB supply).
     powerMode: process.env.POWER_MODE === 'psu' ? 'psu' : 'solar',
+    // Live indicator: green while the last reading is newer than this (seconds).
+    // After it, with deep sleep on, the indicator shows "Sleeping" until the next wake-up is missed.
+    liveWindowMs: Math.max(30, num(process.env.LIVE_WINDOW_SECONDS, 300)) * 1000,
+    // Extra time after the expected wake-up (boot + Wi-Fi + MQTT) before "Offline" (seconds)
+    deepSleepGraceMs: Math.max(0, num(process.env.DEEP_SLEEP_GRACE_SECONDS, 90)) * 1000,
   },
 
   battery: {

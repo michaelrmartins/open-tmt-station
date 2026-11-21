@@ -155,6 +155,6 @@ Ported from the dashboard's HTML Graphics panels (`backend/src/lib/calculations.
 | Wi-Fi quality | `2 × (dBm + 100)`, clamped to 0–100 % |
 | Uptime | Boot time = last report time − `UptimeSec`. A restart is counted when the counter drops by more than 5 s |
 | Deep sleep | Configured interval (`DeepSleepTime`, 0 = off). Next wake-up = last report + interval. Configuration changes inside the window are reported |
-| Connection status | **Live** (green): last reading within 5 min. **Sleeping** (amber): deep sleep is on, its interval is longer than 5 min, and the next wake-up (last reading + interval + 90 s grace for boot, Wi-Fi and MQTT) has not been missed. **Offline** (red): otherwise |
+| Connection status | **Live** (green): last reading within `LIVE_WINDOW_SECONDS` (default 300). **Sleeping** (amber): past that window, deep sleep is on and the expected wake-up (last reading + interval + `DEEP_SLEEP_GRACE_SECONDS`, default 90, for boot, Wi-Fi and MQTT) has not been missed. **Offline** (red): otherwise. With deep sleep on, Offline never comes before the expected wake-up |
 
 The charge level is estimated linearly from voltage, as in Grafana. Treat autonomy figures as approximations.
