@@ -112,6 +112,19 @@ test('energyAnalysis: time on battery / source, consumption and charging', () =>
   assert.equal(e.stateSinceAtLeast, false);
 });
 
+test('deep sleep: interval, next wake-up and config change', () => {
+  const pts = [{ t: now - 20 * MIN, v: 600 }, { t: now - 10 * MIN, v: 300 }, { t: now - 5 * MIN, v: 300 }];
+  const d = c.deepSleep(pts, now);
+  assert.equal(d.value, 300);
+  assert.equal(d.enabled, true);
+  assert.equal(d.nextWakeAt, now - 5 * MIN + 300e3);
+  assert.equal(d.previous, 600);
+  assert.equal(d.changedAt, now - 10 * MIN);
+  assert.equal(d.stale, false); // 5 min old, interval 5 min: not stale yet
+  assert.equal(c.deepSleep([{ t: now - 2 * MIN, v: 0 }], now).enabled, false);
+  assert.equal(c.deepSleep([], now).value, null);
+});
+
 test('wifi and uptime', () => {
   const w = c.wifi([{ t: now, v: -65 }], now);
   assert.equal(w.quality, 70);

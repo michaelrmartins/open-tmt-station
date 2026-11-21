@@ -43,6 +43,7 @@ function sample(t) {
     batteryVoltage,
     wifiSignal: -61 + noise(t, 8) * 8,
     loadAvg: 18 + Math.abs(noise(t, 9)) * 30,
+    deepSleep: 300,
     uptime: Math.floor((t - (Math.floor(t / (9 * DAY)) * 9 * DAY - 2 * H)) / 1000),
   };
 }

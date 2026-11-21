@@ -16,6 +16,7 @@ export const FIELDS = {
   wifiSignal: { field: 'Wifi_Signal', agg: 'mean', unit: 'dBm', label: 'Wi-Fi signal' },
   loadAvg: { field: 'LoadAvg', agg: 'mean', unit: '%', label: 'CPU load' },
   uptime: { field: 'UptimeSec', agg: 'last', unit: 's', label: 'Uptime' },
+  deepSleep: { field: 'DeepSleepTime', agg: 'last', unit: 's', label: 'Deep sleep' },
 };
 
 export const METRIC_KEYS = Object.keys(FIELDS);

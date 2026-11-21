@@ -15,6 +15,7 @@ const DERIVE = {
   wifiSignal: (p, ctx) => calc.wifi(p, ctx.now),
   loadAvg: (p, ctx) => calc.loadAvg(p, ctx.now),
   uptime: (p, ctx) => calc.uptime(p, ctx.now),
+  deepSleep: (p, ctx) => calc.deepSleep(p, ctx.now),
 };
 
 class HttpError extends Error {
