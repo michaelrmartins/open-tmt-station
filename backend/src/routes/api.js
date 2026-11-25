@@ -7,6 +7,8 @@ import * as calc from '../lib/calculations.js';
 const DERIVE = {
   temperature: (p, ctx) => calc.temperature(p, ctx.now),
   humidity: (p, ctx) => calc.humidity(p, ctx.now),
+  // Full analysis needs temperature, humidity and pressure: see the snapshot; here only the dew point series
+  dewPoint: (p, ctx) => calc.dewPoint(p, [], [], null, ctx.now),
   pressure: (p, ctx) => calc.pressure(p, ctx.now),
   internalTemperature: (p, ctx) => calc.internalTemperature(p, ctx.now),
   illuminance: (p, ctx) => calc.illuminance(p, ctx.now),
@@ -118,6 +120,7 @@ export function createApiRouter({ config, repo, cache, weather }) {
         const s = await repo.series('3h');
         const ctx = ctxFor('3h', mode);
         const metrics = Object.fromEntries(METRIC_KEYS.map((m) => [m, DERIVE[m](s[m], ctx)]));
+        metrics.dewPoint = calc.dewPoint(s.dewPoint, s.temperature, s.humidity, metrics.pressure, ctx.now);
         const flow = calc.energyAnalysis(s.sourceVoltage, s.batteryVoltage, { mode, bat, gapMs: ctx.gapMs, slopeWindowMs: ctx.slopeWindowMs });
         const lastTimes = METRIC_KEYS.map((m) => metrics[m].time).filter(Boolean);
         const lastUpdate = lastTimes.length ? Math.max(...lastTimes) : null;

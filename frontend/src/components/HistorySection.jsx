@@ -7,6 +7,7 @@ import { fmtNum } from '../lib/format.js';
 const TABS = [
   { value: 'temperature', label: 'Temperature', tone: 'peach', unit: '°C', digits: 1 },
   { value: 'humidity', label: 'Humidity', tone: 'sky', unit: '%', digits: 1, band: [40, 60] },
+  { value: 'dewPoint', label: 'Dew point', tone: 'teal', unit: '°C', digits: 1, band: [10, 16] },
   { value: 'pressure', label: 'Pressure', tone: 'lilac', unit: 'hPa', digits: 1, reference: { value: 1013.25, label: 'Standard' } },
   { value: 'illuminance', label: 'Light', tone: 'butter', unit: 'lx', digits: 0 },
   { value: 'batteryPercent', label: 'Battery', tone: 'sage', unit: '%', digits: 0, domain: [0, 100], reference: { value: 20, label: 'Low' } },

@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { Area, AreaChart, CartesianGrid, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { TONES } from '../lib/labels.js';
 import { fmtDateTime, fmtNum } from '../lib/format.js';
 
@@ -106,3 +106,63 @@ export function HistoryChart({ points, tone = 'sky', unit, digits = 1, rangeMs, 
   );
 }
 
+
+function PairTooltip({ active, payload, series, unit }) {
+  if (!active || !payload?.length) return null;
+  const row = payload[0].payload;
+  return (
+    <div className="glass rounded-2xl px-3 py-2 text-[12px]">
+      <div className="text-ink-2">{fmtDateTime(row.t)}</div>
+      {series.map((s) => (
+        <div key={s.key} className="tabular flex items-center gap-2 text-ink">
+          <span className="h-2 w-2 rounded-full" style={{ background: TONES[s.tone].line }} />
+          {s.name} <span className="font-semibold">{row[s.key] == null ? '--' : `${fmtNum(row[s.key], 1)} ${unit}`}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Two series on one axis (e.g. temperature and dew point). The first is drawn as a soft
+ * area, the others as lines; optional horizontal bands mark reference ranges.
+ */
+export function PairChart({ series, unit = '', rangeMs, bands = [], height = 220 }) {
+  const id = useId().replace(/:/g, '');
+  const byTime = new Map();
+  series.forEach((s) => (s.points || []).forEach(([t, v]) => byTime.set(t, { ...(byTime.get(t) || { t }), [s.key]: v })));
+  const data = [...byTime.values()].sort((a, b) => a.t - b.t);
+  const long = rangeMs > 2 * 86400e3;
+  const tick = (ts) =>
+    new Date(ts).toLocaleString(undefined, long ? { day: 'numeric', month: 'short' } : { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  if (data.length < 2) {
+    return <div className="flex items-center justify-center text-[14px] text-ink-3" style={{ height }}>No data in this range</div>;
+  }
+  const [first, ...rest] = series;
+  const t0 = TONES[first.tone];
+  return (
+    <div className="glow-line" style={{ height, '--glow': t0.line }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
+          <defs>
+            <linearGradient id={`pc-${id}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={t0.line} stopOpacity={0.32} />
+              <stop offset="100%" stopColor={t0.line} stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} stroke="var(--hair)" />
+          <XAxis dataKey="t" type="number" scale="time" domain={['dataMin', 'dataMax']} tickFormatter={tick} tick={{ fill: 'var(--axis)', fontSize: 11 }} axisLine={false} tickLine={false} minTickGap={48} />
+          <YAxis domain={['auto', 'auto']} tickFormatter={(v) => fmtNum(v, 0)} tick={{ fill: 'var(--axis)', fontSize: 11 }} axisLine={false} tickLine={false} width={36} />
+          {bands.map((b) => (
+            <ReferenceArea key={b.label} y1={b.from} y2={b.to} fill={TONES[b.tone].line} fillOpacity={0.08} stroke="none" ifOverflow="hidden" />
+          ))}
+          <Tooltip content={<PairTooltip series={series} unit={unit} />} cursor={{ stroke: 'var(--hair-strong)', strokeWidth: 1 }} />
+          <Area type="monotone" dataKey={first.key} stroke={t0.line} strokeWidth={2} fill={`url(#pc-${id})`} dot={false} connectNulls animationDuration={600} />
+          {rest.map((s) => (
+            <Line key={s.key} type="monotone" dataKey={s.key} stroke={TONES[s.tone].line} strokeWidth={2.25} dot={<EndDot last={data.length - 1} color={TONES[s.tone].line} />} connectNulls animationDuration={600} />
+          ))}
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}

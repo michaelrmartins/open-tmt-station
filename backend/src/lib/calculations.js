@@ -18,6 +18,7 @@ export const THRESHOLDS = {
   pressure: { rateWindowMs: 3 * H, rateThreshold: 0.5, standard: 1013.25 }, // hPa/3h
   illuminance: { rateWindowMs: 30 * MIN, deltaSamples: 5, deltaRelThreshold: 0.05 },
   internalTemperature: { rateWindowMs: 30 * MIN, rateThreshold: 0.3 },
+  dewPoint: { rateWindowMs: 30 * MIN, rateThreshold: 0.3 }, // °C/h
   battery: {
     rateWindowMs: 30 * MIN,
     rateThreshold: 20, // mV/h needed to leave "flat"
@@ -210,6 +211,112 @@ export function internalTemperature(pts, now) {
     value: round(s.current, 1), min: round(s.min, 1), max: round(s.max, 1), avg: round(s.avg, 1),
     time: s.time, stale: s.stale, level: levelOf('internalTemperature', s.current),
     rate: round(rate, 2), trend: s.count ? trendOf(rate, cfg.rateThreshold) : null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Dew point
+// ---------------------------------------------------------------------------
+
+/** Dew point (°C) from temperature and relative humidity, Magnus formula. */
+export function magnusDewPoint(t, rh) {
+  if (t == null || rh == null || rh <= 0) return null;
+  const a = 17.62, b = 243.12;
+  const g = Math.log(Math.min(rh, 100) / 100) + (a * t) / (b + t);
+  return (b * g) / (a - g);
+}
+
+/** Absolute humidity (g of water vapour per m³ of air). */
+export function absoluteHumidity(t, rh) {
+  if (t == null || rh == null) return null;
+  return (6.112 * Math.exp((17.67 * t) / (t + 243.5)) * rh * 2.1674) / (273.15 + t);
+}
+
+/** Comfort bands by dew point (°C). */
+export const DEW_COMFORT = [
+  [10, 'dry'], // below 10: dry air, sweat evaporates fast, skin and airways dry out
+  [16, 'comfortable'], // 10-16: ideal range
+  [21, 'humid'], // 16-21: noticeable humidity, air feels heavy and slightly sticky
+  [Infinity, 'oppressive'], // above 21: muggy, sweat barely evaporates, heat exhaustion risk
+];
+
+/** Moisture available for thunderstorms, by dew point (°C). */
+const STORM_MOISTURE = [[13, 'very_low'], [18, 'low'], [21, 'moderate'], [Infinity, 'high']];
+
+/**
+ * Dew point analysis.
+ * - comfort / health band from the dew point;
+ * - spread (temperature - dew point): how far the air is from saturation;
+ * - fog / dew risk from the spread, with an estimate of when the air reaches the
+ *   dew point if it keeps cooling at the current rate;
+ * - frost risk (needs a dew point below 0 °C);
+ * - overnight low "floor": air rarely cools much below the dew point;
+ * - moisture available for storms (higher with falling pressure);
+ * - absolute humidity.
+ * Uses AM2301_DewPoint; if missing, computes it from temperature and humidity.
+ */
+export function dewPoint(dewPts, tempPts = [], humPts = [], pressureNow = null, now = Date.now()) {
+  const cfg = THRESHOLDS.dewPoint;
+  let pts = clean(dewPts, -60, 50);
+  let computed = false;
+  if (!pts.length && tempPts.length && humPts.length) {
+    // Fallback: pair temperature and humidity readings from the same buckets
+    const hum = new Map(humPts.map((p) => [p.t, p.v]));
+    pts = tempPts.filter((p) => hum.has(p.t)).map((p) => ({ t: p.t, v: magnusDewPoint(p.v, hum.get(p.t)) })).filter((p) => p.v != null);
+    computed = true;
+  }
+  const s = summarize(pts, now);
+  if (!pts.length) return { unit: '°C', value: null, level: null, time: null, stale: true };
+
+  const td = s.current;
+  const rate = windowRate(pts, cfg.rateWindowMs);
+  const t = tempPts.length ? tempPts[tempPts.length - 1].v : null;
+  const rh = humPts.length ? humPts[humPts.length - 1].v : null;
+  const tRate = windowRate(tempPts, cfg.rateWindowMs);
+  const spread = t == null ? null : Math.max(0, t - td);
+
+  // Fog / dew
+  let fog = null;
+  if (spread != null) {
+    const level = spread <= 1 ? 'forming' : spread <= 2.5 ? 'high' : spread <= 4 ? 'moderate' : 'low';
+    // Hours until the air reaches the dew point at the current cooling rate
+    const closing = -(tRate - rate); // °C/h the spread shrinks by
+    const hours = spread > 0 && closing > 0.05 ? spread / closing : null;
+    fog = { level, saturationInHours: hours != null && hours <= 12 ? round(hours, 1) : null };
+  }
+
+  // Frost: water vapour turns straight into ice only with a dew point below 0 °C
+  let frost;
+  if (td >= 0) frost = 'unlikely';
+  else if (t != null && t <= 0 && spread <= 1) frost = 'forming';
+  else if (t != null && t <= 3) frost = 'likely';
+  else if (t != null && t <= 6) frost = 'possible';
+  else frost = 'low';
+
+  const storm = (STORM_MOISTURE.find(([max]) => td < max) || [])[1];
+  const pressureFalling = pressureNow?.trend === 'down';
+
+  return {
+    unit: '°C',
+    rateUnit: '°C/h',
+    value: round(td, 1),
+    min: round(s.min, 1),
+    max: round(s.max, 1),
+    avg: round(s.avg, 1),
+    time: s.time,
+    stale: s.stale,
+    computed,
+    level: (DEW_COMFORT.find(([max]) => td < max) || [])[1],
+    rate: round(rate, 2),
+    trend: trendOf(rate, cfg.rateThreshold),
+    temperature: round(t, 1),
+    humidity: round(rh, 1),
+    spread: round(spread, 1),
+    fog,
+    frost,
+    nightLowFloor: round(td, 1),
+    storm: { level: storm, pressureFalling, elevated: pressureFalling && (storm === 'moderate' || storm === 'high') },
+    absoluteHumidity: round(absoluteHumidity(t, rh), 1),
   };
 }
 

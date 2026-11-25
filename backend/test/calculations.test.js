@@ -161,6 +161,54 @@ test('connection status: custom live window and grace', () => {
   assert.equal(c.connectionStatus(now - 2.3 * MIN, sleep(120), now, opts).status, 'online');
 });
 
+test('dew point: magnus and absolute humidity', () => {
+  assert.ok(Math.abs(c.magnusDewPoint(25, 60) - 16.7) < 0.1);
+  assert.ok(Math.abs(c.magnusDewPoint(10, 100) - 10) < 0.01);
+  assert.ok(Math.abs(c.absoluteHumidity(25, 60) - 13.8) < 0.1);
+});
+
+test('dew point: comfort bands', () => {
+  const at = (td) => c.dewPoint([{ t: now, v: td }], [], [], null, now).level;
+  assert.equal(at(5), 'dry');
+  assert.equal(at(12), 'comfortable');
+  assert.equal(at(18), 'humid');
+  assert.equal(at(23), 'oppressive');
+});
+
+test('dew point: fog risk, time to saturation and night floor', () => {
+  // air 14 °C cooling 1 °C/h, dew point steady at 11 °C -> spread 3, saturation in ~3 h
+  const d = c.dewPoint(line(11, 0, 60), line(15, -1, 60), line(80, 0, 60), null, now);
+  assert.equal(d.spread, 3);
+  assert.equal(d.fog.level, 'moderate');
+  assert.ok(Math.abs(d.fog.saturationInHours - 3) < 0.1);
+  assert.equal(d.nightLowFloor, 11);
+  assert.equal(d.frost, 'unlikely');
+  const fogNow = c.dewPoint([{ t: now, v: 9.5 }], [{ t: now, v: 10 }], [{ t: now, v: 97 }], null, now);
+  assert.equal(fogNow.fog.level, 'forming');
+});
+
+test('dew point: frost needs a dew point below zero', () => {
+  const frost = (td, t) => c.dewPoint([{ t: now, v: td }], [{ t: now, v: t }], [{ t: now, v: 90 }], null, now).frost;
+  assert.equal(frost(-2, -1.5), 'forming');
+  assert.equal(frost(-3, 2), 'likely');
+  assert.equal(frost(-3, 5), 'possible');
+  assert.equal(frost(-3, 12), 'low');
+  assert.equal(frost(1, 1.5), 'unlikely');
+});
+
+test('dew point: storm moisture rises with falling pressure', () => {
+  const d = c.dewPoint([{ t: now, v: 22 }], [], [], { trend: 'down' }, now);
+  assert.equal(d.storm.level, 'high');
+  assert.equal(d.storm.elevated, true);
+  assert.equal(c.dewPoint([{ t: now, v: 8 }], [], [], { trend: 'down' }, now).storm.elevated, false);
+});
+
+test('dew point: computed from temperature and humidity when the field is missing', () => {
+  const d = c.dewPoint([], [{ t: now, v: 25 }], [{ t: now, v: 60 }], null, now);
+  assert.equal(d.computed, true);
+  assert.ok(Math.abs(d.value - 16.7) < 0.1);
+});
+
 test('wifi and uptime', () => {
   const w = c.wifi([{ t: now, v: -65 }], now);
   assert.equal(w.quality, 70);
