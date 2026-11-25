@@ -367,3 +367,29 @@ Wind speeds are in km/h, `pop` is the probability of precipitation in %, `foreca
 - `frost`: `unlikely` (dew point ≥ 0 °C), `low`, `possible`, `likely`, `forming`.
 - `storm.level`: `very_low`, `low`, `moderate`, `high`; `elevated` when moisture is moderate/high and pressure is falling.
 - `computed`: true when the dew point was derived from temperature and humidity because `AM2301_DewPoint` was missing.
+
+### `outlook` (in `/api/snapshot`)
+
+```json
+{
+  "outlook": "clearing",
+  "chance": { "1h": 4, "3h": 5, "6h": 3 },
+  "storm": "none",
+  "isDay": true,
+  "cloudCover": 45,
+  "pressureTendency": 1.1,
+  "confidence": "medium",
+  "lightReferenceDays": 7,
+  "factors": [
+    { "key": "very_dry_air", "effect": "lowers", "weight": -1.2, "group": "moisture", "value": 15.2, "unit": "°C" },
+    { "key": "pressure_rising", "effect": "lowers", "weight": -0.7, "group": "pressure", "value": 1.1, "unit": "hPa/3h" }
+  ],
+  "time": 1700000000000
+}
+```
+
+- `outlook`: `storm`, `rain`, `showers`, `fog`, `sunny`, `clearing`, `partly_cloudy`, `cloudy`, `clear_night`, `cloudy_night`, `unknown_day`, `unknown`.
+- `chance`: estimated chance of rain (%) per horizon. `storm`: `none`, `watch` (hot and humid), `possible`, `likely`.
+- `cloudCover`: % estimated from the light sensor (daytime only, null at night or twilight). `isDay`: null when there is no light history yet.
+- `factors`: each rule that fired, sorted by weight; `effect` says whether it raises or lowers the chance of rain.
+- Local estimate from the station's sensors, not a scientific forecast.

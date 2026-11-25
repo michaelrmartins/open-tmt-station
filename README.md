@@ -159,4 +159,20 @@ Ported from the dashboard's HTML Graphics panels (`backend/src/lib/calculations.
 | Deep sleep | Configured interval (`DeepSleepTime`, 0 = off). Next wake-up = last report + interval. Configuration changes inside the window are reported |
 | Connection status | **Live** (green): last reading within `LIVE_WINDOW_SECONDS` (default 300). **Sleeping** (amber): past that window, deep sleep is on and the expected wake-up (last reading + interval + `DEEP_SLEEP_GRACE_SECONDS`, default 90, for boot, Wi-Fi and MQTT) has not been missed. **Offline** (red): otherwise. With deep sleep on, Offline never comes before the expected wake-up |
 
+### Local outlook (rain chance and sky)
+
+`backend/src/lib/nowcast.js`. A rule-based short-range estimate from the station's own sensors, in the spirit of barometer forecasting (Zambretti), not a scientific forecast. Every rule adds or removes evidence (log-odds) for rain; the total becomes a probability for the next 1, 3 and 6 hours (pressure weighs more at longer horizons, humidity and light at shorter ones). All weights are in `NOWCAST` and can be tuned.
+
+| Signal | Effect |
+| --- | --- |
+| Pressure tendency (hPa/3h) | falling fast / falling / falling slowly raise the chance; rising lowers it |
+| Pressure level | below 1008 hPa raises, above 1016 hPa lowers |
+| Spread (air − dew point) | ≤ 1 °C saturated, ≤ 2.5 near saturation, ≤ 4 moist raise; ≥ 10 dry air lowers |
+| Spread closing fast, humidity rising fast | raise |
+| Dew point | ≥ 18 °C moist air mass raises (storm fuel); < 8 °C lowers |
+| Daytime cloud cover from light | light compared with a clear-sky curve learned from the last 7 days (brightest reading per half hour, interpolated); overcast raises, bright sky lowers; only estimated with the sun high enough |
+| Sky darkening fast, sudden cooling with rising humidity | raise (shower nearby or a storm outflow) |
+
+Scenario: storm approaching, rain likely, showers possible, fog or low clouds, sunny, clearing up, partly cloudy, cloudy, clear night, cloudy night. Storm risk needs a moist air mass (dew point ≥ 18 °C) plus a trigger (pressure falling fast, darkening, sudden cooling). Confidence depends on how much data is available. When OpenWeather is configured, its probability of precipitation is shown for comparison.
+
 The charge level is estimated linearly from voltage, as in Grafana. Treat autonomy figures as approximations.

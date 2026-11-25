@@ -7,6 +7,7 @@ import { Segmented, SectionTitle, ICON_STROKE } from './components/ui.jsx';
 import { WeatherGrid } from './components/WeatherCards.jsx';
 import { HistorySection } from './components/HistorySection.jsx';
 import { DewPointCard } from './components/DewPointCard.jsx';
+import { OutlookCard } from './components/OutlookCard.jsx';
 import { EnergySection } from './components/EnergySection.jsx';
 import { SystemSection } from './components/SystemSection.jsx';
 import { OutsideBanner } from './components/OutsideBanner.jsx';
@@ -155,6 +156,10 @@ export default function App() {
 
         <div className="mt-4">
           <DewPointCard dew={snapshot.data?.metrics?.dewPoint} history={history.data} rangeMs={rangeCfg.ms} rangeLabel={rangeLabel} />
+        </div>
+
+        <div className="mt-4">
+          <OutlookCard outlook={snapshot.data?.outlook} outside={outside.data} />
         </div>
 
         <div className="mt-4">

@@ -34,6 +34,7 @@ test('endpoints (MOCK_DATA)', async () => {
     assert.ok(snap.body.metrics.temperature.value !== null);
     assert.equal(snap.body.metrics.deepSleep.value, 300);
     assert.ok(snap.body.metrics.dewPoint.value !== null && snap.body.metrics.dewPoint.spread >= 0);
+    assert.ok(snap.body.outlook && typeof snap.body.outlook.chance['3h'] === 'number');
     assert.ok(['online', 'sleeping', 'offline'].includes(snap.body.status));
     assert.ok(['battery', 'charging', 'full'].includes(snap.body.flow.state));
 

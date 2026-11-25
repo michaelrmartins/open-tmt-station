@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { RANGES, DEFAULT_RANGE, FIELDS, METRIC_KEYS } from '../influx/queries.js';
 import * as calc from '../lib/calculations.js';
+import { nowcast, lightReference } from '../lib/nowcast.js';
 
 
 // "Now" derivation of each metric from a series.
@@ -121,6 +122,16 @@ export function createApiRouter({ config, repo, cache, weather }) {
         const ctx = ctxFor('3h', mode);
         const metrics = Object.fromEntries(METRIC_KEYS.map((m) => [m, DERIVE[m](s[m], ctx)]));
         metrics.dewPoint = calc.dewPoint(s.dewPoint, s.temperature, s.humidity, metrics.pressure, ctx.now);
+
+        // Local outlook. Clear-sky light reference learned from the last 7 days (cached 30 min).
+        let luxRef = null;
+        try {
+          const week = await cache.wrap('lux-reference-7d', 30 * 60e3, () => repo.series('7d', ['illuminance']));
+          luxRef = lightReference(week.illuminance || []);
+        } catch {
+          /* outlook still works without the light reference */
+        }
+        const outlook = nowcast({ s, luxRef, dew: metrics.dewPoint, pressure: metrics.pressure }, ctx.now);
         const flow = calc.energyAnalysis(s.sourceVoltage, s.batteryVoltage, { mode, bat, gapMs: ctx.gapMs, slopeWindowMs: ctx.slopeWindowMs });
         const lastTimes = METRIC_KEYS.map((m) => metrics[m].time).filter(Boolean);
         const lastUpdate = lastTimes.length ? Math.max(...lastTimes) : null;
@@ -138,6 +149,7 @@ export function createApiRouter({ config, repo, cache, weather }) {
             return { online: c.status === 'online', status: c.status, sleepingAt: c.sleepingAt, offlineAt: c.offlineAt, nextWakeAt: metrics.deepSleep.nextWakeAt };
           })(),
           metrics,
+          outlook,
           flow: {
             state: flow.state,
             sourceOn: flow.sourceOn ?? null,
