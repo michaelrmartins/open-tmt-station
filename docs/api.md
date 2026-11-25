@@ -6,7 +6,7 @@ Parameters:
 
 - `range`: `1h`, `3h`, `6h`, `12h`, `24h`, `7d`, `30d`
 - `mode`: `solar` or `psu` (default from `POWER_MODE`)
-- `metrics`: comma-separated list of `temperature`, `humidity`, `pressure`, `internalTemperature`, `illuminance`, `sourceVoltage`, `batteryVoltage`, `wifiSignal`, `loadAvg`, `uptime`, `deepSleep`
+- `metrics`: comma-separated list of `temperature`, `humidity`, `dewPoint`, `pressure`, `internalTemperature`, `illuminance`, `sourceVoltage`, `batteryVoltage`, `wifiSignal`, `loadAvg`, `uptime`, `deepSleep`
 
 Common fields in derived metrics:
 
@@ -348,3 +348,22 @@ Wind speeds are in km/h, `pop` is the probability of precipitation in %, `foreca
 - `sleepingAt`: when `online` turns into `sleeping` (null when no sleeping phase applies).
 - `offlineAt`: when the station counts as offline: the later of last reading + `LIVE_WINDOW_SECONDS` and last reading + deep sleep interval + `DEEP_SLEEP_GRACE_SECONDS`.
 - `online` is kept for compatibility and is `true` only for `status: "online"`.
+
+### `metrics.dewPoint` (in `/api/snapshot`)
+
+```json
+{
+  "unit": "°C", "value": 13.6, "min": 12.9, "max": 13.8, "avg": 13.4, "rate": 0.1, "trend": "flat",
+  "level": "comfortable", "temperature": 23.9, "humidity": 53, "spread": 10.3,
+  "fog": { "level": "low", "saturationInHours": 8.2 },
+  "frost": "unlikely", "nightLowFloor": 13.6,
+  "storm": { "level": "low", "pressureFalling": false, "elevated": false },
+  "absoluteHumidity": 11.4, "computed": false, "time": 1700000000000, "stale": false
+}
+```
+
+- `level`: `dry` (< 10 °C), `comfortable` (10–16), `humid` (16–21), `oppressive` (> 21).
+- `spread`: air temperature minus dew point. `fog.level`: `forming` (≤ 1 °C), `high` (≤ 2.5), `moderate` (≤ 4), `low`. `fog.saturationInHours`: when the air reaches the dew point at the current cooling rate (null if not cooling towards it or more than 12 h away).
+- `frost`: `unlikely` (dew point ≥ 0 °C), `low`, `possible`, `likely`, `forming`.
+- `storm.level`: `very_low`, `low`, `moderate`, `high`; `elevated` when moisture is moderate/high and pressure is falling.
+- `computed`: true when the dew point was derived from temperature and humidity because `AM2301_DewPoint` was missing.

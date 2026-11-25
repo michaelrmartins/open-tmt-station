@@ -2,6 +2,7 @@
 // Simulates day/night cycle, solar panel, battery charge/discharge and weather.
 
 import { METRIC_KEYS } from '../influx/queries.js';
+import { magnusDewPoint } from '../lib/calculations.js';
 
 const H = 3600e3;
 const DAY = 24 * H;
@@ -36,6 +37,7 @@ function sample(t) {
   return {
     temperature,
     humidity,
+    dewPoint: magnusDewPoint(temperature, humidity),
     pressure,
     internalTemperature: temperature + 6 + daylight * 8 + noise(t, 7) * 0.2,
     illuminance,

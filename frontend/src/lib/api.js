@@ -8,7 +8,7 @@ async function get(path, params = {}) {
   return body;
 }
 
-export const HISTORY_METRICS = ['temperature', 'humidity', 'pressure', 'illuminance', 'batteryVoltage', 'sourceVoltage', 'internalTemperature'];
+export const HISTORY_METRICS = ['temperature', 'humidity', 'dewPoint', 'pressure', 'illuminance', 'batteryVoltage', 'sourceVoltage', 'internalTemperature'];
 
 export const api = {
   meta: () => get('/meta'),

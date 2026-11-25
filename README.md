@@ -67,6 +67,7 @@ Measurement `mqtt_consumer`, filtered with `"topic" =~ /^tele\/esp32_varanda\//`
 | --------------------- | -------------------- | ---- | ----------------- |
 | `temperature`         | `AM2301_Temperature` | °C   | AM2301            |
 | `humidity`            | `AM2301_Humidity`    | %    | AM2301            |
+| `dewPoint`            | `AM2301_DewPoint`    | °C   | AM2301 (Tasmota)  |
 | `pressure`            | `BMP280_Pressure`    | hPa  | BMP280            |
 | `internalTemperature` | `BMP280_Temperature` | °C   | BMP280 (enclosure)|
 | `illuminance`         | `BH1750_Illuminance` | lx   | BH1750            |
@@ -139,6 +140,7 @@ Ported from the dashboard's HTML Graphics panels (`backend/src/lib/calculations.
 | --- | --- |
 | Temperature trend | Slope over the last 30 min in °C/h. Rising / falling above ±0.3 °C/h |
 | Humidity trend | Slope over 30 min in %/h, threshold ±1 %/h. Comfort band 40–60 % |
+| Dew point | Comfort bands: below 10 °C dry, 10–16 comfortable, 16–21 noticeably humid, above 21 muggy/oppressive (with health notes). Spread = air − dew point. Fog/dew risk by spread (≤ 1 °C forming, ≤ 2.5 high, ≤ 4 moderate), plus time until the air reaches the dew point at the current cooling rate (30 min slopes, shown up to 12 h). Frost only with a dew point below 0 °C (possible / likely / forming as the air approaches 0 °C). Night low floor ≈ dew point. Storm moisture: < 13 °C very low, 13–18 low, 18–21 moderate, ≥ 21 high, flagged as rising when pressure is falling. Absolute humidity in g/m³. If `AM2301_DewPoint` is missing it is computed from temperature and humidity (Magnus formula) |
 | Pressure tendency | Slope over 3 h × 3, in hPa/3h. Threshold ±0.5 hPa/3h. Barometer levels (stormy … very dry) |
 | Light trend | Current value vs. mean of the 5 previous readings, threshold max(1 lx, 5 %). Also a 30 min slope in lx/h |
 | Battery level | `(V − BAT_EMPTY) / (BAT_MAX − BAT_EMPTY) × 100`, clamped to 0–100 |

@@ -8,6 +8,7 @@
 export const FIELDS = {
   temperature: { field: 'AM2301_Temperature', agg: 'mean', unit: '°C', label: 'Temperature' },
   humidity: { field: 'AM2301_Humidity', agg: 'mean', unit: '%', label: 'Humidity' },
+  dewPoint: { field: 'AM2301_DewPoint', agg: 'mean', unit: '°C', label: 'Dew point' },
   pressure: { field: 'BMP280_Pressure', agg: 'mean', unit: 'hPa', label: 'Pressure' },
   internalTemperature: { field: 'BMP280_Temperature', agg: 'mean', unit: '°C', label: 'Internal temperature' },
   illuminance: { field: 'BH1750_Illuminance', agg: 'mean', unit: 'lx', label: 'Illuminance' },
