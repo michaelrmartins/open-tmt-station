@@ -224,19 +224,9 @@ export function DewPointCard({ dew, history, rangeMs, rangeLabel }) {
       <Divider />
       <div className="flex flex-wrap items-center justify-between gap-3 px-1">
         <div className="text-[13px] font-medium text-ink-2">Temperature and dew point</div>
-        <div className="flex items-center gap-4 text-[12px] text-ink-2">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full" style={{ background: TONES.peach.line }} />
-            Air
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full" style={{ background: TONES.teal.line }} />
-            Dew point
-          </span>
-          <span className="hidden sm:inline">When the lines meet, dew or fog forms</span>
-        </div>
+        <div className="text-[12px] text-ink-3">When the lines meet, dew or fog forms · click a legend item to show or hide it</div>
       </div>
-      <div className="-mx-2 mt-3">
+      <div className="-mx-2 mt-2">
         <PairChart unit="°C" rangeMs={rangeMs} series={pairSeries} bands={COMFORT_BAND} spreadLabel="Spread" />
       </div>
     </Card>
