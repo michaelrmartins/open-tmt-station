@@ -1,6 +1,7 @@
+import { useCallback, useMemo } from 'react';
 import { CloudFog, CloudLightning, Droplets, HeartPulse, MoonStar, Snowflake, Waves } from 'lucide-react';
 import { Card, CardHeader, Divider, IconChip, Skeleton, Stat, TrendPill, ICON_STROKE } from './ui.jsx';
-import { PairChart } from './charts.jsx';
+import { PairChart, ScaleBar } from './charts.jsx';
 import { TONES } from '../lib/labels.js';
 import { fmtHours, fmtNum, fmtSigned } from '../lib/format.js';
 
@@ -37,7 +38,6 @@ const SEGMENTS = [
   { from: 16, to: 21, tone: 'butter' },
   { from: 21, to: SCALE_MAX, tone: 'coral' },
 ];
-const pos = (v) => `${(Math.max(0, Math.min(1, (v - SCALE_MIN) / (SCALE_MAX - SCALE_MIN))) * 100).toFixed(2)}%`;
 
 const FOG = {
   forming: { label: 'Forming now', tone: 'coral' },
@@ -59,30 +59,30 @@ const STORM = {
   high: { label: 'High', tone: 'coral' },
 };
 
+const COMFORT_SEGMENTS = SEGMENTS.map((seg, i) => ({ ...seg, label: ['Dry air', 'Comfortable', 'Noticeably humid', 'Muggy and oppressive'][i] }));
+const COMFORT_TICKS = [10, 16, 21].map((v) => ({ value: v, label: `${v}°` }));
+
 function ComfortScale({ value }) {
+  const tip = useCallback(
+    (t) =>
+      t.kind === 'segment'
+        ? `<b>${t.label}</b><br/>${t.from <= SCALE_MIN ? 'below ' + t.to : t.to >= SCALE_MAX ? 'above ' + t.from : t.from + ' to ' + t.to} °C dew point`
+        : `Dew point <b>${fmtNum(value, 1)} °C</b>`,
+    [value]
+  );
   return (
     <div className="mt-5">
-      <div className="relative h-2.5">
-        <div className="flex h-full overflow-hidden rounded-full">
-          {SEGMENTS.map((s) => (
-            <div key={s.from} className="h-full" style={{ width: `${((s.to - s.from) / (SCALE_MAX - SCALE_MIN)) * 100}%`, background: TONES[s.tone].line, opacity: 0.8 }} />
-          ))}
-        </div>
-        {value != null && (
-          <div
-            className="absolute -top-[5px] h-5 w-5 -translate-x-1/2 rounded-full border-[3px] border-white shadow-[0_1px_4px_rgba(0,0,0,0.3)] transition-[left] duration-1000"
-            style={{ left: pos(value), background: TONES[COMFORT[levelOf(value)].tone].fg }}
-            aria-hidden="true"
-          />
-        )}
-      </div>
-      <div className="tabular relative mt-2 h-4 text-[11px] text-ink-3">
-        {[10, 16, 21].map((v) => (
-          <span key={v} className="absolute -translate-x-1/2" style={{ left: pos(v) }}>
-            {v}°
-          </span>
-        ))}
-      </div>
+      <ScaleBar
+        min={SCALE_MIN}
+        max={SCALE_MAX}
+        segments={COMFORT_SEGMENTS}
+        marker={value}
+        tone={COMFORT[levelOf(value)]?.tone || 'sage'}
+        ticks={COMFORT_TICKS}
+        thickness={10}
+        tooltip={tip}
+        ariaLabel={`Dew point ${fmtNum(value, 1)} degrees on the comfort scale`}
+      />
       <div className="mt-0.5 grid grid-cols-4 text-[11px] font-medium">
         {['Dry', 'Comfortable', 'Humid', 'Oppressive'].map((l, i) => (
           <span key={l} className={i === 0 ? '' : i === 3 ? 'text-right' : 'text-center'} style={{ color: TONES[SEGMENTS[i].tone].fg }}>
@@ -93,6 +93,8 @@ function ComfortScale({ value }) {
     </div>
   );
 }
+
+const COMFORT_BAND = [{ label: 'comfortable', from: 10, to: 16, tone: 'sage' }];
 
 const levelOf = (v) => (v < 10 ? 'dry' : v < 16 ? 'comfortable' : v < 21 ? 'humid' : 'oppressive');
 
@@ -112,6 +114,15 @@ function Signal({ icon, tone, title, value, hint }) {
 }
 
 export function DewPointCard({ dew, history, rangeMs, rangeLabel }) {
+  const airPts = history?.series?.temperature?.points;
+  const dewPts = history?.series?.dewPoint?.points;
+  const pairSeries = useMemo(
+    () => [
+      { key: 'air', name: 'Air', tone: 'peach', points: airPts },
+      { key: 'dew', name: 'Dew point', tone: 'teal', points: dewPts },
+    ],
+    [airPts, dewPts]
+  );
   if (!dew) return <Card><Skeleton className="h-72" /></Card>;
   if (dew.value == null) {
     return (
@@ -226,15 +237,7 @@ export function DewPointCard({ dew, history, rangeMs, rangeLabel }) {
         </div>
       </div>
       <div className="-mx-2 mt-3">
-        <PairChart
-          unit="°C"
-          rangeMs={rangeMs}
-          series={[
-            { key: 'air', name: 'Air', tone: 'peach', points: history?.series?.temperature?.points },
-            { key: 'dew', name: 'Dew point', tone: 'teal', points: history?.series?.dewPoint?.points },
-          ]}
-          bands={[{ label: 'comfortable', from: 10, to: 16, tone: 'sage' }]}
-        />
+        <PairChart unit="°C" rangeMs={rangeMs} series={pairSeries} bands={COMFORT_BAND} spreadLabel="Spread" />
       </div>
     </Card>
   );

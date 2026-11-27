@@ -16,7 +16,7 @@ ESP32 (Tasmota) ── MQTT ──> Telegraf ──> InfluxDB 1.x
 | Folder      | Stack                                                    |
 | ----------- | -------------------------------------------------------- |
 | `backend/`  | Node.js 22, Express 5, plain HTTP client for InfluxQL     |
-| `frontend/` | React 19, Vite, Tailwind CSS 4, Recharts, Lucide icons    |
+| `frontend/` | React 19, Vite, Tailwind CSS 4, Apache ECharts, Lucide icons |
 
 ## Quick start
 

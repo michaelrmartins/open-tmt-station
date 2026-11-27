@@ -52,7 +52,7 @@ export function WeatherCard({ cfg, metric, history, rangeLabel }) {
       </div>
 
       <div className="-mx-1 mt-4">
-        <Sparkline points={history?.points} tone={tone} />
+        <Sparkline points={history?.points} tone={tone} unit={unit} digits={cfg.statDigits ?? digits} label={title} />
       </div>
 
       <Divider />
