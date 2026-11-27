@@ -1,13 +1,16 @@
+import { useCallback } from 'react';
+import { ScaleBar } from './charts.jsx';
 import { AlarmClock, Cpu, MoonStar, RotateCcw, Thermometer, Timer, Wifi, WifiHigh, WifiLow, WifiZero } from 'lucide-react';
 import { Card, CardHeader, Skeleton, Stat, TrendPill } from './ui.jsx';
 import { TONES, label } from '../lib/labels.js';
 import { fmtDateTime, fmtNum, fmtSigned, fmtTime, uptimeParts } from '../lib/format.js';
 import { useNow } from '../hooks/usePolling.js';
 
-function Meter({ value, tone }) {
+function Meter({ value, tone, label, unit = '%' }) {
+  const tip = useCallback(() => `${label} <b>${fmtNum(value, 0)}${unit}</b>`, [label, value, unit]);
   return (
-    <div className="mt-4 h-1.5 rounded-full bg-[var(--track)]">
-      <div className="h-full rounded-full transition-[width] duration-1000" style={{ width: `${Math.max(0, Math.min(100, value ?? 0))}%`, background: TONES[tone].line }} />
+    <div className="mt-4">
+      <ScaleBar min={0} max={100} value={value ?? 0} tone={tone} thickness={6} tooltip={tip} ariaLabel={`${label} ${fmtNum(value, 0)} percent`} />
     </div>
   );
 }
@@ -27,7 +30,7 @@ function WifiCard({ wifi, className }) {
     <Card className={className}>
       <CardHeader icon={Icon} tone="teal" title="Wi-Fi" subtitle={label(wifi?.level)} />
       <Big value={fmtNum(wifi?.value, 0)} unit="dBm" />
-      <Meter value={wifi?.quality} tone="teal" />
+      <Meter value={wifi?.quality} tone="teal" label="Signal quality" />
       <div className="mt-2 text-[12px] text-ink-2">
         Signal quality <span className="tabular font-semibold text-ink">{fmtNum(wifi?.quality, 0)}%</span>
       </div>
@@ -40,7 +43,7 @@ function LoadCard({ load, className }) {
     <Card className={className}>
       <CardHeader icon={Cpu} tone="rose" title="CPU load" subtitle={label(load?.level)} />
       <Big value={fmtNum(load?.value, 0)} unit="%" />
-      <Meter value={load?.value} tone="rose" />
+      <Meter value={load?.value} tone="rose" label="CPU load" />
       <div className="mt-2 text-[12px] text-ink-2">
         3 h average <span className="tabular font-semibold text-ink">{fmtNum(load?.avg, 0)}%</span>
       </div>

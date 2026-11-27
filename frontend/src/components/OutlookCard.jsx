@@ -1,3 +1,5 @@
+import { useCallback } from 'react';
+import { ScaleBar } from './charts.jsx';
 import { ArrowDownRight, ArrowUpRight, Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudMoon, CloudRain, CloudSun, Info, MoonStar, Radar, Sun, Zap } from 'lucide-react';
 import { Card, CardHeader, Divider, Pill, Skeleton, ICON_STROKE } from './ui.jsx';
 import { TONES } from '../lib/labels.js';
@@ -58,12 +60,11 @@ const chanceTone = (p) => (p < 20 ? 'sage' : p < 40 ? 'sky' : p < 65 ? 'butter' 
 
 function Horizon({ label, value }) {
   const tone = chanceTone(value ?? 0);
+  const tip = useCallback(() => `${label}: <b>${value ?? '--'}%</b> chance of rain`, [label, value]);
   return (
     <div className="grid grid-cols-[72px_1fr_44px] items-center gap-3">
       <span className="text-[12px] font-medium text-ink-2">{label}</span>
-      <div className="h-2 rounded-full bg-[var(--track)]">
-        <div className="h-full rounded-full transition-[width] duration-1000" style={{ width: `${Math.max(2, value ?? 0)}%`, background: TONES[tone].line }} />
-      </div>
+      <ScaleBar min={0} max={100} value={value ?? 0} tone={tone} thickness={8} tooltip={tip} ariaLabel={`${label} ${value} percent chance of rain`} />
       <span className="tabular text-right text-[13px] font-semibold">{value == null ? '--' : `${value}%`}</span>
     </div>
   );

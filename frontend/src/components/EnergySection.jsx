@@ -1,4 +1,6 @@
+import { useCallback, useMemo } from 'react';
 import { BatteryCharging, BatteryFull, BatteryLow, BatteryMedium, CircuitBoard, Clock, Cpu, Hourglass, Plug, PlugZap, Sun, TrendingDown, TrendingUp, Zap } from 'lucide-react';
+import { ScaleBar } from './charts.jsx';
 import { Card, CardHeader, Divider, IconChip, Pill, Skeleton, Stat, TrendPill, ICON_STROKE } from './ui.jsx';
 import { FLOW_STATE, TONES, batteryTone, label } from '../lib/labels.js';
 import { fmtDateTime, fmtDuration, fmtHours, fmtNum, fmtSigned, fmtTime } from '../lib/format.js';
@@ -156,12 +158,33 @@ function PowerFlowCard({ snapshot }) {
 const STATUS_TONE = { charger_active: 'sage', usb_spec_ok: 'sage', charger_limit: 'apricot', usb_spec_out: 'apricot', below_minimum: 'slate', no_input: 'coral' };
 
 function PowerInputCard({ power, rangeLabel }) {
+  const solarMode = power?.mode !== 'psu';
+  const lim = power?.limits;
+  const zoneCfg = useMemo(
+    () => (lim ? (solarMode ? { from: lim.chargerOk, to: lim.max, tone: 'sage', label: 'Charger active' } : { from: lim.specLo, to: lim.specHi, tone: 'sage', label: 'USB spec' }) : null),
+    [lim, solarMode]
+  );
+  const ticksCfg = useMemo(
+    () =>
+      lim
+        ? solarMode
+          ? [{ value: lim.min, label: `${fmtNum(lim.min, 1)} V` }, { value: lim.chargerMin, label: `${fmtNum(lim.chargerMin, 1)} V min` }, { value: lim.max, label: `${fmtNum(lim.max, 1)} V` }]
+          : [{ value: lim.min, label: `${fmtNum(lim.min, 1)} V` }, { value: lim.nominal, label: '5 V' }, { value: lim.max, label: `${fmtNum(lim.max, 1)} V` }]
+        : [],
+    [lim, solarMode]
+  );
+  const v = power?.voltage;
+  const scaleTooltip = useCallback(
+    (t) =>
+      t.kind === 'zone'
+        ? `<b>${t.label}</b><br/>${fmtNum(t.from, 2)} to ${fmtNum(t.to, 2)} V`
+        : `Input <b>${fmtNum(v, 2)} V</b>${solarMode && lim ? `<br/><span style="opacity:.75">Charger needs at least ${fmtNum(lim.chargerMin, 1)} V</span>` : ''}`,
+    [v, solarMode, lim]
+  );
   if (!power) return <Card><Skeleton className="h-64" /></Card>;
   const solar = power.mode === 'solar';
   const tone = solar ? 'apricot' : 'sky';
   const L = power.limits || {};
-  const pos = (v) => `${Math.max(0, Math.min(100, ((v - L.min) / (L.max - L.min)) * 100))}%`;
-  const zone = solar ? [L.chargerOk, L.max] : [L.specLo, L.specHi];
 
   return (
     <Card className="flex flex-col">
@@ -174,17 +197,18 @@ function PowerInputCard({ power, rangeLabel }) {
       <div className="mt-1.5 text-[14px] font-medium" style={{ color: TONES[tone].fg }}>{label(power.level)}</div>
 
       {/* Scale with the charger / USB-spec zone */}
-      <div className="mt-6">
-        <div className="relative h-2 rounded-full bg-[var(--track)]">
-          <div className="absolute inset-y-0 rounded-full" style={{ left: pos(zone[0]), width: `calc(${pos(zone[1])} - ${pos(zone[0])})`, background: TONES.sage.bg }} />
-          <div className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-1000" style={{ width: pos(power.voltage), background: TONES[tone].line }} />
-          <div className="absolute -top-1 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-white shadow" style={{ left: pos(power.voltage), background: TONES[tone].fg }} />
-        </div>
-        <div className="tabular mt-2 flex justify-between text-[11px] text-ink-3">
-          <span>{fmtNum(L.min, 1)} V</span>
-          <span>{solar ? `Charger ${fmtNum(L.chargerMin, 1)} V min` : `USB ${fmtNum(L.specLo, 2)} to ${fmtNum(L.specHi, 2)} V`}</span>
-          <span>{fmtNum(L.max, 1)} V</span>
-        </div>
+      <div className="mt-5">
+        <ScaleBar
+          min={L.min}
+          max={L.max}
+          value={power.voltage}
+          marker={power.voltage}
+          tone={tone}
+          zone={zoneCfg}
+          ticks={ticksCfg}
+          tooltip={scaleTooltip}
+          ariaLabel={`Input voltage ${fmtNum(power.voltage, 2)} volts`}
+        />
       </div>
 
       <Divider />
@@ -227,6 +251,18 @@ function StatTile({ icon, tone, title, value, unit, hint }) {
 }
 
 function EnergyStatsCard({ energy, rangeLabel }) {
+  const sharesKey = energy ? `${energy.shares?.source}-${energy.shares?.battery}-${energy.mode}` : '';
+  const shareSegments = useMemo(() => {
+    if (!energy?.shares) return [];
+    const src = energy.shares.source * 100;
+    const isSolar = energy.mode === 'solar';
+    return [
+      { from: 0, to: src, tone: isSolar ? 'apricot' : 'sky', label: `On ${isSolar ? 'solar' : 'PSU'}`, ms: energy.totals.source },
+      { from: src, to: 100, tone: 'sage', label: 'On battery', ms: energy.totals.battery },
+    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sharesKey]);
+  const shareTooltip = useCallback((t) => (t.kind === 'segment' ? `<b>${t.label}</b><br/>${fmtNum(t.to - t.from, 0)}% · ${fmtDuration(t.ms)}` : ''), []);
   if (!energy) return <Card><Skeleton className="h-48" /></Card>;
   const { totals, shares, discharge, charge } = energy;
   const solar = energy.mode === 'solar';
@@ -237,12 +273,9 @@ function EnergyStatsCard({ energy, rangeLabel }) {
     <Card>
       <CardHeader icon={Zap} tone="sage" title="Energy balance" subtitle={`Last ${rangeLabel} · ${energy.transitions} state changes`} />
 
-      {/* Share bar */}
+      {/* Share of time on source vs battery */}
       <div className="mt-5">
-        <div className="flex h-3 overflow-hidden rounded-full bg-[var(--track)]">
-          <div className="h-full transition-[width] duration-1000" style={{ width: `${srcPct}%`, background: TONES[solar ? 'apricot' : 'sky'].line }} />
-          <div className="h-full transition-[width] duration-1000" style={{ width: `${batPct}%`, background: TONES.sage.line }} />
-        </div>
+        <ScaleBar min={0} max={100} segments={shareSegments} thickness={12} tooltip={shareTooltip} ariaLabel={`On ${solar ? 'solar' : 'PSU'} ${fmtNum(srcPct, 0)} percent, on battery ${fmtNum(batPct, 0)} percent`} />
         <div className="mt-2 flex flex-wrap justify-between gap-2 text-[12px] text-ink-2">
           <span className="inline-flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full" style={{ background: TONES[solar ? 'apricot' : 'sky'].line }} />

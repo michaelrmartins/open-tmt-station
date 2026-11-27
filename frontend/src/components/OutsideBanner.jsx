@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { ForecastChart } from './charts.jsx';
 import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSnow, Droplet, Gauge, Moon, Navigation, Sun, Sunrise, Sunset, Wind } from 'lucide-react';
 import { fmtNum, fmtTime } from '../lib/format.js';
 
@@ -55,52 +55,6 @@ function Metric({ icon: Icon, value, unit, label, accent }) {
           <Icon strokeWidth={1.8} className="h-3.5 w-3.5 shrink-0 2xl:hidden" style={{ color: accent || '#fff' }} aria-hidden="true" />
           {label}
         </div>
-      </div>
-    </div>
-  );
-}
-
-/** Forecast temperature line with a cyan glow, as in the reference photo. */
-function ForecastLine({ forecast, compact = false }) {
-  const id = useId().replace(/:/g, '');
-  const pts = forecast.filter((f) => f.temp != null);
-  if (pts.length < 2) return null;
-  const W = 600, H = compact ? 40 : 70, padX = 14, padY = compact ? 7 : 12;
-  const lo = Math.min(...pts.map((p) => p.temp)), hi = Math.max(...pts.map((p) => p.temp));
-  const span = hi - lo || 1;
-  const xy = pts.map((p, i) => [padX + (i * (W - 2 * padX)) / (pts.length - 1), H - padY - ((p.temp - lo) / span) * (H - 2 * padY)]);
-  let d = `M${xy[0][0]},${xy[0][1]}`;
-  for (let i = 0; i < xy.length - 1; i++) {
-    const p0 = xy[i - 1] || xy[i], p1 = xy[i], p2 = xy[i + 1], p3 = xy[i + 2] || p2;
-    d += ` C${p1[0] + (p2[0] - p0[0]) / 6},${p1[1] + (p2[1] - p0[1]) / 6} ${p2[0] - (p3[0] - p1[0]) / 6},${p2[1] - (p3[1] - p1[1]) / 6} ${p2[0]},${p2[1]}`;
-  }
-  const [lx, ly] = xy[xy.length - 1];
-  return (
-    <div>
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className={`${compact ? 'h-[40px]' : 'h-[70px]'} w-full overflow-visible`} aria-hidden="true">
-        <defs>
-          <linearGradient id={`fa-${id}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={DROP} stopOpacity="0.35" />
-            <stop offset="100%" stopColor={DROP} stopOpacity="0" />
-          </linearGradient>
-          <filter id={`fg-${id}`} x="-10%" y="-50%" width="120%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        <path d={`${d} L${lx},${H} L${xy[0][0]},${H} Z`} fill={`url(#fa-${id})`} />
-        <path d={d} fill="none" stroke={DROP} strokeWidth="2.5" vectorEffect="non-scaling-stroke" filter={`url(#fg-${id})`} />
-      </svg>
-      <div className={`${compact ? 'mt-0' : 'mt-1'} grid text-center`} style={{ gridTemplateColumns: `repeat(${pts.length}, minmax(0, 1fr))` }}>
-        {pts.map((p, i) => (
-          <div key={p.time} className="min-w-0">
-            <div className={`tabular font-semibold ${compact ? 'text-[12px]' : 'text-[13px]'}`}>{fmtNum(p.temp, 0)}°</div>
-            <div className={`tabular opacity-75 ${compact ? 'text-[10px]' : 'text-[11px]'}`}>{compact && i % 2 ? '\u00a0' : fmtTime(p.time)}</div>
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -187,7 +141,7 @@ export function OutsideBanner({ outside, stationName }) {
                       )}
                     </span>
                   </div>
-                  <ForecastLine forecast={outside.forecast} compact />
+                  <ForecastChart forecast={outside.forecast} height={78} />
                 </div>
               )}
             </div>

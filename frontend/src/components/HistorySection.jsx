@@ -55,7 +55,7 @@ export function HistorySection({ history, rangeMs }) {
       </div>
 
       <div className="-mx-2 mt-5">
-        <HistoryChart key={tab} points={series?.points} tone={cfg.tone} unit={cfg.unit} digits={cfg.digits} rangeMs={rangeMs} domain={cfg.domain} band={cfg.band} reference={cfg.reference} />
+        <HistoryChart key={`${tab}-${rangeMs}`} points={series?.points} tone={cfg.tone} unit={cfg.unit} digits={cfg.digits} rangeMs={rangeMs} domain={cfg.domain} band={cfg.band} reference={cfg.reference} label={cfg.label} />
       </div>
     </Card>
   );
