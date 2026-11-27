@@ -226,6 +226,7 @@
 }
 .flow-h,
 .flow-v {
+  position: relative;
   border-radius: 9999px;
   background-color: rgba(20, 50, 90, 0.07);
 }
@@ -244,6 +245,49 @@
 }
 .flow-v.is-active.is-reverse {
   animation-direction: reverse;
+}
+
+/* Glowing dots travelling along active connectors, faster than the dashes */
+.flow-dot {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow:
+    0 0 6px 2px currentColor,
+    0 0 2px 1px #ffffff;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: flow-dot-h 1.5s linear infinite;
+}
+.flow-dot + .flow-dot {
+  animation-delay: 0.75s;
+}
+.flow-v .flow-dot {
+  top: 0;
+  left: 50%;
+  animation: flow-dot-v 1s linear infinite;
+}
+.flow-v .flow-dot + .flow-dot {
+  animation-delay: 0.5s;
+}
+.is-reverse .flow-dot {
+  animation-direction: reverse;
+}
+@keyframes flow-dot-h {
+  0% { left: 0; opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+@keyframes flow-dot-v {
+  0% { top: 0; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
 }
 
 @keyframes pulse-soft {
@@ -317,6 +361,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .flow-dot {
+    display: none;
+  }
   .zzz span {
     animation: none;
     opacity: 1;

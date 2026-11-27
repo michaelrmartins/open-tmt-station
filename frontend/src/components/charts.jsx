@@ -7,12 +7,12 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as echarts from 'echarts/core';
 import { BarChart, EffectScatterChart, LineChart, ScatterChart } from 'echarts/charts';
-import { DataZoomComponent, GridComponent, MarkAreaComponent, MarkLineComponent, TooltipComponent } from 'echarts/components';
+import { DataZoomComponent, GridComponent, LegendComponent, MarkAreaComponent, MarkLineComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { TONES } from '../lib/labels.js';
 import { fmtDateTime, fmtNum, fmtTime } from '../lib/format.js';
 
-echarts.use([LineChart, BarChart, ScatterChart, EffectScatterChart, GridComponent, TooltipComponent, MarkAreaComponent, MarkLineComponent, DataZoomComponent, CanvasRenderer]);
+echarts.use([LineChart, BarChart, ScatterChart, EffectScatterChart, GridComponent, LegendComponent, TooltipComponent, MarkAreaComponent, MarkLineComponent, DataZoomComponent, CanvasRenderer]);
 
 // ---------------------------------------------------------------------------
 // Colour tokens
@@ -65,7 +65,18 @@ export function EChart({ option, height, className = '', ariaLabel }) {
   useEffect(() => {
     const c = echarts.init(ref.current, null, { renderer: 'canvas' });
     chart.current = c;
-    const ro = new ResizeObserver(() => c.resize());
+    // ResizeObserver also fires once right after observe(); resizing then would cut the intro
+    // animation short, so only resize when the size really changed.
+    let w = Math.round(ref.current.clientWidth);
+    let h = Math.round(ref.current.clientHeight);
+    const ro = new ResizeObserver(([entry]) => {
+      const nw = Math.round(entry.contentRect.width);
+      const nh = Math.round(entry.contentRect.height);
+      if (nw === w && nh === h) return;
+      w = nw;
+      h = nh;
+      c.resize({ animation: { duration: 250 } });
+    });
     ro.observe(ref.current);
     return () => {
       ro.disconnect();
@@ -127,8 +138,9 @@ const areaGradient = (lineVar, top = 0.4) => ({
 });
 
 /** Glowing, pulsing marker on the latest point. */
-const lastPoint = (data, lineVar, size = 7) => ({
+const lastPoint = (data, lineVar, size = 7, name) => ({
   type: 'effectScatter',
+  name,
   data: data.length ? [data[data.length - 1]] : [],
   symbolSize: size,
   z: 5,
@@ -256,15 +268,33 @@ export function HistoryChart({ points, tone = 'sky', unit, digits = 1, rangeMs, 
 // ---------------------------------------------------------------------------
 // Two series on one axis (temperature vs dew point)
 // ---------------------------------------------------------------------------
-export function PairChart({ series, unit = '', rangeMs, bands = [], height = 220, spreadLabel }) {
+export function PairChart({ series, unit = '', rangeMs, bands = [], height = 236, spreadLabel }) {
   const option = useMemo(() => {
     const [first, ...rest] = series;
     const firstLine = TONES[first.tone].line;
-    // index the second series by time for the tooltip spread
-    const other = new Map((rest[0]?.points || []).map(([t, v]) => [t, v]));
+    const bandOwner = rest.length ? 1 : 0; // comfort band belongs to the second series (dew point)
+    const markArea = bands.length
+      ? { silent: true, data: bands.map((b) => [{ yAxis: b.from, itemStyle: { color: `alpha(${TONES[b.tone].line}, 0.1)` } }, { yAxis: b.to }]) }
+      : undefined;
+    // index the series by time for the tooltip spread
+    const byTime = series.map((s) => new Map((s.points || []).map(([t, v]) => [t, v])));
     return {
       animationDuration: 700,
-      grid: { left: 40, right: 16, top: 14, bottom: 28 },
+      // Click a legend item to show or hide that line
+      legend: {
+        data: series.map((s) => s.name),
+        top: 0,
+        right: 8,
+        icon: 'circle',
+        itemWidth: 9,
+        itemHeight: 9,
+        itemGap: 18,
+        selectedMode: true,
+        textStyle: { color: 'var(--color-ink-2)', fontSize: 12, fontFamily: FONT },
+        inactiveColor: 'var(--track-strong)',
+        tooltip: { show: false },
+      },
+      grid: { left: 40, right: 16, top: 38, bottom: 28 },
       xAxis: {
         type: 'time',
         axisLine: { show: false },
@@ -288,9 +318,11 @@ export function PairChart({ series, unit = '', rangeMs, bands = [], height = 220
           const t = lines[0].value[0];
           let html = head(fmtDateTime(t));
           lines.forEach((p) => (html += row(p.color, p.seriesName, `${fmtNum(p.value[1], 1)} ${unit}`)));
-          const a = lines.find((p) => p.seriesIndex === 0)?.value[1];
-          const b = other.get(t);
-          if (spreadLabel && a != null && b != null) html += `<div style="margin-top:4px;opacity:.75">${spreadLabel}: <b>${fmtNum(a - b, 1)} ${unit}</b></div>`;
+          if (spreadLabel && lines.length >= 2) {
+            const a = byTime[0].get(t);
+            const b = byTime[1]?.get(t);
+            if (a != null && b != null) html += `<div style="margin-top:4px;opacity:.75">${spreadLabel}: <b>${fmtNum(a - b, 1)} ${unit}</b></div>`;
+          }
           return html;
         },
       },
@@ -304,14 +336,9 @@ export function PairChart({ series, unit = '', rangeMs, bands = [], height = 220
           color: firstLine,
           lineStyle: { width: 2, color: firstLine, shadowBlur: 8, shadowColor: `alpha(${firstLine}, 0.5)` },
           areaStyle: { color: areaGradient(firstLine, 0.3) },
-          markArea: bands.length
-            ? {
-                silent: true,
-                data: bands.map((b) => [{ yAxis: b.from, itemStyle: { color: `alpha(${TONES[b.tone].line}, 0.1)` } }, { yAxis: b.to }]),
-              }
-            : undefined,
+          markArea: bandOwner === 0 ? markArea : undefined,
         },
-        ...rest.map((s) => {
+        ...rest.map((s, i) => {
           const l = TONES[s.tone].line;
           return {
             type: 'line',
@@ -321,9 +348,11 @@ export function PairChart({ series, unit = '', rangeMs, bands = [], height = 220
             showSymbol: false,
             color: l,
             lineStyle: { width: 2.25, color: l, shadowBlur: 10, shadowColor: `alpha(${l}, 0.6)` },
+            markArea: i === 0 ? markArea : undefined,
           };
         }),
-        ...rest.map((s) => lastPoint(s.points || [], TONES[s.tone].line, 7)),
+        lastPoint(first.points || [], firstLine, 6, first.name),
+        ...rest.map((s) => lastPoint(s.points || [], TONES[s.tone].line, 7, s.name)),
       ],
     };
   }, [series, unit, rangeMs, bands, spreadLabel]);

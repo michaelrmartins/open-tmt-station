@@ -89,6 +89,16 @@ function BatteryCard({ battery }) {
 // ---------------------------------------------------------------------------
 // Power flow: source -> CN3065 -> ESP32, battery attached to the charger
 // ---------------------------------------------------------------------------
+/** Two glowing dots running along a connector (direction follows the connector's is-reverse). */
+function FlowDots() {
+  return (
+    <>
+      <span className="flow-dot" aria-hidden="true" />
+      <span className="flow-dot" aria-hidden="true" />
+    </>
+  );
+}
+
 function FlowNode({ icon, tone, title, value, dim }) {
   return (
     <div className={`flex flex-col items-center gap-1.5 text-center transition-opacity ${dim ? 'opacity-45' : ''}`}>
@@ -131,14 +141,20 @@ function PowerFlowCard({ snapshot }) {
       {/* Diagram: 3 columns x 3 rows */}
       <div className="mt-6 grid grid-cols-[auto_1fr_auto_1fr_auto] grid-rows-[auto_36px_auto] items-center">
         <FlowNode icon={solar ? Sun : PlugZap} tone={srcOn ? srcTone : 'slate'} title={solar ? 'Solar' : 'PSU'} value={`${fmtNum(metrics.sourceVoltage.voltage, 2)} V`} dim={!srcOn} />
-        <div className={`flow-h mx-2 mb-9 h-[3px] ${srcOn ? 'is-active' : ''}`} style={{ color: TONES[srcTone].line }} />
+        <div className={`flow-h mx-2 mb-9 h-[3px] ${srcOn ? 'is-active' : ''}`} style={{ color: TONES[srcTone].line }}>
+          {srcOn && <FlowDots />}
+        </div>
         <FlowNode icon={CircuitBoard} tone={state.tone} title="CN3065" value={charging ? 'Charging' : onBattery ? 'Bypass' : 'Complete'} />
-        <div className="flow-h is-active mx-2 mb-9 h-[3px]" style={{ color: TONES[loadTone].line }} />
+        <div className="flow-h is-active mx-2 mb-9 h-[3px]" style={{ color: TONES[loadTone].line }}>
+          <FlowDots />
+        </div>
         <FlowNode icon={Cpu} tone={loadTone} title="ESP32" value={snapshot.status === 'sleeping' ? 'Sleeping' : snapshot.online ? 'Running' : 'No recent data'} />
 
         <div />
         <div />
-        <div className={`flow-v mx-auto h-full w-[3px] ${flow.state !== 'full' ? 'is-active' : ''} ${charging ? '' : 'is-reverse'}`} style={{ color: TONES[charging ? 'sage' : 'apricot'].line }} />
+        <div className={`flow-v mx-auto h-full w-[3px] ${flow.state !== 'full' ? 'is-active' : ''} ${charging ? '' : 'is-reverse'}`} style={{ color: TONES[charging ? 'sage' : 'apricot'].line }}>
+          {flow.state !== 'full' && <FlowDots />}
+        </div>
         <div />
         <div />
 
