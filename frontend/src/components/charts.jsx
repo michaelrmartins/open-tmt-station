@@ -6,13 +6,13 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import * as echarts from 'echarts/core';
-import { BarChart, EffectScatterChart, GaugeChart, LineChart, ScatterChart } from 'echarts/charts';
+import { BarChart, EffectScatterChart, LineChart, ScatterChart } from 'echarts/charts';
 import { DataZoomComponent, GridComponent, MarkAreaComponent, MarkLineComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { TONES } from '../lib/labels.js';
 import { fmtDateTime, fmtNum, fmtTime } from '../lib/format.js';
 
-echarts.use([LineChart, BarChart, ScatterChart, GaugeChart, EffectScatterChart, GridComponent, TooltipComponent, MarkAreaComponent, MarkLineComponent, DataZoomComponent, CanvasRenderer]);
+echarts.use([LineChart, BarChart, ScatterChart, EffectScatterChart, GridComponent, TooltipComponent, MarkAreaComponent, MarkLineComponent, DataZoomComponent, CanvasRenderer]);
 
 // ---------------------------------------------------------------------------
 // Colour tokens
@@ -504,41 +504,4 @@ export function ScaleBar({ min = 0, max = 100, value, marker, segments, zone, ti
 
   const height = (marker != null ? thickness + 18 : thickness + 4) + ((ticks || []).length ? 18 : 0);
   return <EChart option={option} height={height} ariaLabel={ariaLabel} />;
-}
-
-// ---------------------------------------------------------------------------
-// Ring gauge (battery)
-// ---------------------------------------------------------------------------
-export function RingGauge({ value, tone = 'sage', size = 120, center, sub, tooltip, ariaLabel = 'Gauge' }) {
-  const option = useMemo(() => {
-    const c = TONES[tone].line;
-    return {
-      tooltip: tooltip ? { ...tooltipBase, trigger: 'item', formatter: () => tooltip } : { show: false },
-      series: [
-        {
-          type: 'gauge',
-          startAngle: 90,
-          endAngle: -270,
-          min: 0,
-          max: 100,
-          radius: '92%',
-          pointer: { show: false },
-          progress: { show: true, roundCap: true, width: 10, itemStyle: { color: c, shadowBlur: 10, shadowColor: `alpha(${c}, 0.6)` } },
-          axisLine: { roundCap: true, lineStyle: { width: 10, color: [[1, 'var(--track)']] } },
-          axisTick: { show: false },
-          splitLine: { show: false },
-          axisLabel: { show: false },
-          title: { show: true, offsetCenter: [0, '30%'], color: 'var(--color-ink-2)', fontSize: 11, fontFamily: FONT },
-          detail: { offsetCenter: [0, '-6%'], valueAnimation: true, color: 'var(--color-ink)', fontSize: 20, fontWeight: 600, fontFamily: FONT, formatter: () => center ?? '' },
-          data: [{ value: value ?? 0, name: sub ?? '' }],
-          animationDuration: 1000,
-        },
-      ],
-    };
-  }, [value, tone, center, sub, tooltip]);
-  return (
-    <div style={{ width: size }}>
-      <EChart option={option} height={size} ariaLabel={ariaLabel} />
-    </div>
-  );
 }

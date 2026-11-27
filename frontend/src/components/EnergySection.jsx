@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { BatteryCharging, BatteryFull, BatteryLow, BatteryMedium, CircuitBoard, Clock, Cpu, Hourglass, Plug, PlugZap, Sun, TrendingDown, TrendingUp, Zap } from 'lucide-react';
-import { RingGauge, ScaleBar } from './charts.jsx';
+import { ScaleBar } from './charts.jsx';
 import { Card, CardHeader, Divider, IconChip, Pill, Skeleton, Stat, TrendPill, ICON_STROKE } from './ui.jsx';
 import { FLOW_STATE, TONES, batteryTone, label } from '../lib/labels.js';
 import { fmtDateTime, fmtDuration, fmtHours, fmtNum, fmtSigned, fmtTime } from '../lib/format.js';
@@ -8,6 +8,24 @@ import { fmtDateTime, fmtDuration, fmtHours, fmtNum, fmtSigned, fmtTime } from '
 // ---------------------------------------------------------------------------
 // Battery
 // ---------------------------------------------------------------------------
+function BatteryGlyph({ percent, tone, charging }) {
+  const t = TONES[tone];
+  const p = Math.max(0, Math.min(100, percent ?? 0));
+  return (
+    <div className="relative flex items-center" aria-hidden="true">
+      <div className="relative h-[72px] w-[150px] rounded-[22px] border-[2.5px] p-[5px]" style={{ borderColor: 'var(--track-strong)' }}>
+        <div className="h-full rounded-[15px] transition-[width] duration-1000 ease-out" style={{ width: `${Math.max(p, 4)}%`, background: `linear-gradient(180deg, ${t.line}, ${t.fg})`, opacity: 0.85 }} />
+        {charging && (
+          <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]">
+            <Zap size={26} strokeWidth={ICON_STROKE} fill="currentColor" />
+          </span>
+        )}
+      </div>
+      <div className="ml-[3px] h-6 w-[6px] rounded-r-[4px]" style={{ background: 'var(--track-strong)' }} />
+    </div>
+  );
+}
+
 function BatteryCard({ battery }) {
   if (!battery) return <Card><Skeleton className="h-64" /></Card>;
   const tone = batteryTone(battery.percent);
@@ -38,15 +56,7 @@ function BatteryCard({ battery }) {
             {label(battery.level)} · <span className="tabular">{fmtNum(battery.voltage, 3)} V</span>
           </div>
         </div>
-        <RingGauge
-          value={battery.percent}
-          tone={tone}
-          size={118}
-          center={`${fmtNum(battery.voltage, 2)} V`}
-          sub={charging ? 'Charging' : battery.trend === 'down' ? 'Discharging' : 'Stable'}
-          tooltip={`Charge <b>${fmtNum(battery.percent, 0)}%</b> · ${fmtNum(battery.voltage, 3)} V<br/><span style="opacity:.75">${fmtNum(battery.empty, 2)} V = 0% · ${fmtNum(battery.full, 3)} V = 100%</span>`}
-          ariaLabel={`Battery ${fmtNum(battery.percent, 0)} percent`}
-        />
+        <BatteryGlyph percent={battery.percent} tone={tone} charging={charging} />
       </div>
 
       <div className="mt-5 min-h-[52px] rounded-2xl bg-white/[0.08] px-4 py-3 ring-1 ring-white/15">
